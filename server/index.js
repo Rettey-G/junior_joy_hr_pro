@@ -17,62 +17,22 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Database Setup
-console.log('Setting up database...');
+// MongoDB Connection
+console.log('Connecting to MongoDB Atlas...');
 
-// Use mock database for demonstration
-// This avoids MongoDB connection issues in cloud environments
-console.log('Using mock database for demonstration');
+// Use the exact connection string provided by the user
+const MONGODB_URI = 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-// Create mock data
-const mockEmployees = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', department: 'Engineering', salary: 85000 },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com', department: 'Marketing', salary: 75000 },
-  { id: '3', name: 'Bob Johnson', email: 'bob@example.com', department: 'HR', salary: 65000 },
-  { id: '4', name: 'Alice Williams', email: 'alice@example.com', department: 'Finance', salary: 78000 },
-  { id: '5', name: 'Charlie Brown', email: 'charlie@example.com', department: 'Operations', salary: 62000 }
-];
-
-// Mock DB interface
-global.db = {
-  employees: mockEmployees,
-  findEmployee: (id) => mockEmployees.find(emp => emp.id === id),
-  addEmployee: (employee) => {
-    const newEmployee = { ...employee, id: Date.now().toString() };
-    mockEmployees.push(newEmployee);
-    return newEmployee;
-  },
-  updateEmployee: (id, data) => {
-    const index = mockEmployees.findIndex(emp => emp.id === id);
-    if (index !== -1) {
-      mockEmployees[index] = { ...mockEmployees[index], ...data };
-      return mockEmployees[index];
-    }
-    return null;
-  },
-  deleteEmployee: (id) => {
-    const index = mockEmployees.findIndex(emp => emp.id === id);
-    if (index !== -1) {
-      const deleted = mockEmployees[index];
-      mockEmployees.splice(index, 1);
-      return deleted;
-    }
-    return null;
-  }
-};
-
-console.log('Mock database initialized successfully');
-
-// NOTE: MongoDB connection is disabled to avoid DNS and connection issues
-// If you want to use MongoDB in the future, uncomment and configure this:
-/*
-mongoose.connect('mongodb+srv://username:password@cluster.mongodb.net/dbname', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch(err => console.error('MongoDB connection error:', err));
-*/
+// Connect to MongoDB Atlas
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Successfully connected to MongoDB Atlas');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    console.error('Unable to connect to MongoDB Atlas. Please check your connection string and network settings.');
+    process.exit(1); // Exit the application if MongoDB connection fails
+  });
 
 // Socket.io logic
 io.on('connection', (socket) => {
