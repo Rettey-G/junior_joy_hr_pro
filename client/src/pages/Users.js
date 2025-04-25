@@ -99,7 +99,6 @@ const Users = () => {
   const handleSaveUser = async () => {
     try {
       const token = localStorage.getItem('token');
-      let response;
 
       // Validate required fields
       if (!formData.username) {
