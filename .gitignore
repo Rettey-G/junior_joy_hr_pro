@@ -1,0 +1,14 @@
+# See https://nodejs.org/api/fs.html#fs_filesystem for typical Node.js ignores
+node_modules/
+dist/
+.env
+# Allow .env.example to be tracked
+.env.*
+!.env.example
+build/
+.DS_Store
+*.log
+# React/Netlify ignores
+client/build/
+client/node_modules/
+server/node_modules/
