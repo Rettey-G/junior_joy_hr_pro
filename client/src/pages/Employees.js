@@ -43,13 +43,17 @@ const Employees = () => {
     idNumber: '',
     gender: 'Male',
     nationality: 'Maldivian',
+    cityIsland: 'hinnavaru',
     dateOfBirth: '',
     mobileNumber: '',
     workNo: '',
     designation: '',
     department: '',
     workSite: 'Office',
-    joinedDate: ''
+    joinedDate: '',
+    salaryUSD: 0,
+    salaryMVR: 0,
+    image: ''
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -357,6 +361,8 @@ const Employees = () => {
                   <TableCell>Designation</TableCell>
                   <TableCell>Department</TableCell>
                   <TableCell>Work Site</TableCell>
+                  <TableCell>Salary (USD)</TableCell>
+                  <TableCell>Salary (MVR)</TableCell>
                   <TableCell>Joined Date</TableCell>
                   {isAdmin && <TableCell align="center">Actions</TableCell>}
                 </TableRow>
@@ -378,6 +384,8 @@ const Employees = () => {
                       <TableCell>{employee.designation}</TableCell>
                       <TableCell>{employee.department}</TableCell>
                       <TableCell>{employee.workSite}</TableCell>
+                      <TableCell>${employee.salaryUSD || 0}</TableCell>
+                      <TableCell>{employee.salaryMVR || 0} MVR</TableCell>
                       <TableCell>{formatDate(employee.joinedDate)}</TableCell>
                       {isAdmin && (
                         <TableCell align="center">
@@ -473,6 +481,16 @@ const Employees = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
+                label="City/Island"
+                name="cityIsland"
+                value={formData.cityIsland}
+                onChange={handleChange}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
                 label="Date of Birth"
                 name="dateOfBirth"
                 type="date"
@@ -525,19 +543,15 @@ const Employees = () => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Work Site</InputLabel>
-                <Select
-                  name="workSite"
-                  value={formData.workSite}
-                  label="Work Site"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="Office">Office</MenuItem>
-                  <MenuItem value="Express 1">Express 1</MenuItem>
-                  <MenuItem value="Express 3">Express 3</MenuItem>
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                label="Work Site"
+                name="workSite"
+                value={formData.workSite}
+                onChange={handleChange}
+                margin="normal"
+                required
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
@@ -549,6 +563,45 @@ const Employees = () => {
                 onChange={handleChange}
                 margin="normal"
                 InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Salary (USD)"
+                name="salaryUSD"
+                type="number"
+                value={formData.salaryUSD}
+                onChange={handleChange}
+                margin="normal"
+                InputProps={{
+                  startAdornment: <span style={{ marginRight: 8 }}>$</span>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Salary (MVR)"
+                name="salaryMVR"
+                type="number"
+                value={formData.salaryMVR}
+                onChange={handleChange}
+                margin="normal"
+                InputProps={{
+                  endAdornment: <span style={{ marginLeft: 8 }}>MVR</span>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={12}>
+              <TextField
+                fullWidth
+                label="Image URL"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                margin="normal"
+                helperText="Enter URL for employee photo (optional)"
               />
             </Grid>
           </Grid>
