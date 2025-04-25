@@ -17,7 +17,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import { format } from 'date-fns';
 import api from '../services/api';
 
@@ -322,32 +322,45 @@ const Reports = () => {
         return (
           <Paper sx={{ p: 2, height: 500 }}>
             <Typography variant="h6" gutterBottom>Headcount Analysis</Typography>
-            <Bar data={getHeadcountTrendData()} options={{
-              ...chartOptions,
-              scales: {
-                y: {
-                  type: 'linear',
-                  display: true,
-                  position: 'left',
-                  title: {
-                    display: true,
-                    text: 'Headcount'
-                  }
-                },
-                y1: {
-                  type: 'linear',
-                  display: true,
-                  position: 'right',
-                  grid: {
-                    drawOnChartArea: false,
-                  },
-                  title: {
-                    display: true,
-                    text: 'Hires/Terminations'
-                  }
-                },
-              },
-            }} />
+            <Box sx={{ height: '90%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ height: '60%', mb: 2 }}>
+                <Typography variant="subtitle2">Headcount Trend</Typography>
+                <Line 
+                  data={{
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                      label: 'Headcount',
+                      data: getHeadcountTrendData().datasets[0].data,
+                      borderColor: 'rgb(54, 162, 235)',
+                      backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                      tension: 0.1
+                    }]
+                  }} 
+                  options={chartOptions} 
+                />
+              </Box>
+              <Box sx={{ height: '40%' }}>
+                <Typography variant="subtitle2">Hires vs Terminations</Typography>
+                <Bar 
+                  data={{
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                      {
+                        label: 'Hires',
+                        data: getHeadcountTrendData().datasets[1].data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                      },
+                      {
+                        label: 'Terminations',
+                        data: getHeadcountTrendData().datasets[2].data,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                      }
+                    ]
+                  }}
+                  options={chartOptions}
+                />
+              </Box>
+            </Box>
           </Paper>
         );
       
