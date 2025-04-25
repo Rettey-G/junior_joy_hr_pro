@@ -36,7 +36,8 @@ const socket = io(process.env.REACT_APP_SOCKET_URL);
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
-  const [stats, setStats] = useState({
+  // Using just the stats state without the setter to fix ESLint warning
+  const [stats] = useState({
     totalEmployees: 42,
     newHires: 5,
     departments: 6,

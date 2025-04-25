@@ -14,7 +14,6 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { api } from '../services/api';
 
 const Login = () => {
   const navigate = useNavigate();
