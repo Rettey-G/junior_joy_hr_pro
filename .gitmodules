@@ -1,0 +1,3 @@
+[submodule "client"]
+	path = client
+	url = https://github.com/Rettey-G/junior_joy_hr_pro.git
