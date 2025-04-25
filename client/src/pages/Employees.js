@@ -108,6 +108,7 @@ const Employees = () => {
   // Initial fetch
   useEffect(() => {
     fetchEmployees();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // Handle dialog open/close

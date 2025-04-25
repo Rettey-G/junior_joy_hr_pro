@@ -119,12 +119,12 @@ const Users = () => {
         const dataToSend = { ...formData };
         if (!dataToSend.password) delete dataToSend.password;
         
-        response = await api.put(`/api/users/${selectedUser._id}`, dataToSend, {
+        await api.put(`/api/users/${selectedUser._id}`, dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         // Create new user
-        response = await api.post('/api/users', formData, {
+        await api.post('/api/users', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

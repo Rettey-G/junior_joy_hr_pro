@@ -7,10 +7,6 @@ import {
   TextField, 
   Button, 
   Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   CircularProgress
 } from '@mui/material';
