@@ -3,21 +3,23 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-// Example: Dummy user for demonstration
+// Example: Dummy users for demonstration
 const users = [
-  { email: 'admin@hr.com', password: '$2a$10$dummyhash', role: 'admin' }
+  { username: 'user', password: 'password', role: 'admin' },
+  { username: 'hr', password: 'password', role: 'hr' },
+  { username: 'employee', password: 'password', role: 'employee' }
 ];
 
 // POST /login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find(u => u.email === email);
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username);
   if (!user) return res.status(401).json({ msg: 'Invalid credentials' });
   // In production, use bcrypt.compare
-  const isMatch = password === 'admin123'; // Replace with bcrypt.compare
+  const isMatch = password === user.password; // Simple password check
   if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
-  const token = jwt.sign({ email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  res.json({ token });
+  const token = jwt.sign({ username: user.username, role: user.role }, process.env.JWT_SECRET || 'yourjwtsecretkey', { expiresIn: '1h' });
+  res.json({ token, user: { username: user.username, role: user.role } });
 });
 
 // POST /logout (dummy endpoint)

@@ -18,7 +18,7 @@ import {
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
     role: 'hr' // Default role
   });
@@ -38,29 +38,29 @@ const Login = () => {
     setError('');
     
     try {
-      // For demo, we'll simulate a successful login
-      // In production, replace with actual API call:
-      // const response = await api.post('/api/auth/login', formData);
+      // Make a real API call to the backend
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
       
-      // Simulate API response
-      const mockResponse = {
-        data: {
-          token: 'mock-jwt-token-' + Math.random().toString(36).substr(2, 9),
-          user: {
-            name: 'Demo User',
-            role: formData.role
-          }
-        }
-      };
+      const data = await response.json();
       
-      // Store token
-      localStorage.setItem('token', mockResponse.data.token);
-      localStorage.setItem('user', JSON.stringify(mockResponse.data.user));
+      if (!response.ok) {
+        throw new Error(data.msg || 'Login failed');
+      }
+      
+      // Store token and user info
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.msg || 'Login failed. Please try again.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -84,12 +84,12 @@ const Login = () => {
               margin="normal"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
               autoFocus
-              value={formData.email}
+              value={formData.username}
               onChange={handleChange}
             />
             
@@ -133,7 +133,7 @@ const Login = () => {
             </Button>
             
             <Typography variant="body2" color="textSecondary" align="center">
-              Demo credentials: admin@hr.com / admin123
+              Demo credentials: user / password
             </Typography>
           </Box>
         </Paper>
