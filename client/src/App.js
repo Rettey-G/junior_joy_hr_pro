@@ -9,6 +9,10 @@ import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
 import Users from './pages/Users';
+import PayrollDetails from './pages/PayrollDetails';
+import LeavePlan from './pages/LeavePlan';
+import OrgChart from './pages/OrgChart';
+import Reports from './pages/Reports';
 
 // Components
 import Navbar from './components/Navbar';
@@ -42,6 +46,10 @@ function App() {
             <Route path="/" element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/employees" element={isAuthenticated() ? <Employees /> : <Navigate to="/login" />} />
             <Route path="/payroll" element={isAuthenticated() ? <Payroll /> : <Navigate to="/login" />} />
+            <Route path="/payroll-details" element={isAuthenticated() ? <PayrollDetails /> : <Navigate to="/login" />} />
+            <Route path="/leave-plan" element={isAuthenticated() ? <LeavePlan /> : <Navigate to="/login" />} />
+            <Route path="/org-chart" element={isAuthenticated() ? <OrgChart /> : <Navigate to="/login" />} />
+            <Route path="/reports" element={isAuthenticated() ? <Reports /> : <Navigate to="/login" />} />
             <Route path="/users" element={isAuthenticated() ? <Users /> : <Navigate to="/login" />} />
           </Routes>
         </div>

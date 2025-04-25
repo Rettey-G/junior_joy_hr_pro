@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -7,18 +7,45 @@ import {
   Button, 
   Box,
   IconButton,
-  Avatar
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
   const isAdmin = userRole === 'admin';
+  
+  // State for dropdown menus
+  const [payrollAnchorEl, setPayrollAnchorEl] = useState(null);
+  const [orgAnchorEl, setOrgAnchorEl] = useState(null);
+  
+  // Handle menu open/close
+  const handlePayrollMenuOpen = (event) => setPayrollAnchorEl(event.currentTarget);
+  const handlePayrollMenuClose = () => setPayrollAnchorEl(null);
+  
+  const handleOrgMenuOpen = (event) => setOrgAnchorEl(event.currentTarget);
+  const handleOrgMenuClose = () => setOrgAnchorEl(null);
+  
+  // Navigate and close menu
+  const handleMenuNavigation = (path) => {
+    navigate(path);
+    handlePayrollMenuClose();
+    handleOrgMenuClose();
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -52,14 +79,75 @@ const Navbar = () => {
             Employees
           </Button>
           
+          {/* Payroll Dropdown */}
           <Button 
-            color="inherit" 
-            component={Link}
-            to="/payroll"
+            color="inherit"
             startIcon={<AttachMoneyIcon />}
+            endIcon={<ExpandMoreIcon />}
+            onClick={handlePayrollMenuOpen}
+            aria-controls="payroll-menu"
+            aria-haspopup="true"
           >
             Payroll
           </Button>
+          <Menu
+            id="payroll-menu"
+            anchorEl={payrollAnchorEl}
+            keepMounted
+            open={Boolean(payrollAnchorEl)}
+            onClose={handlePayrollMenuClose}
+          >
+            <MenuItem onClick={() => handleMenuNavigation('/payroll')}>
+              <ListItemIcon>
+                <AttachMoneyIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Payroll Overview</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuNavigation('/payroll-details')}>
+              <ListItemIcon>
+                <ReceiptIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Payroll Details</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuNavigation('/leave-plan')}>
+              <ListItemIcon>
+                <EventNoteIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Leave Plan</ListItemText>
+            </MenuItem>
+          </Menu>
+          
+          {/* Organization Dropdown */}
+          <Button 
+            color="inherit"
+            startIcon={<AccountTreeIcon />}
+            endIcon={<ExpandMoreIcon />}
+            onClick={handleOrgMenuOpen}
+            aria-controls="org-menu"
+            aria-haspopup="true"
+          >
+            Organization
+          </Button>
+          <Menu
+            id="org-menu"
+            anchorEl={orgAnchorEl}
+            keepMounted
+            open={Boolean(orgAnchorEl)}
+            onClose={handleOrgMenuClose}
+          >
+            <MenuItem onClick={() => handleMenuNavigation('/org-chart')}>
+              <ListItemIcon>
+                <AccountTreeIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Organization Chart</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuNavigation('/reports')}>
+              <ListItemIcon>
+                <AssessmentIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Reports</ListItemText>
+            </MenuItem>
+          </Menu>
           
           {isAdmin && (
             <Button 
