@@ -14,13 +14,13 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import api from '../services/api';
 
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
-    password: '',
-    role: 'hr' // Default role
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,29 +38,29 @@ const Login = () => {
     setError('');
     
     try {
-      // Make a real API call to the backend
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.msg || 'Login failed');
+      // First try regular login with User model
+      let response;
+      try {
+        response = await api.post('/api/auth/login', formData);
+      } catch (err) {
+        // If regular login fails, try demo login as fallback
+        if (err.response?.status === 401 || err.response?.status === 500) {
+          console.log('Trying demo login as fallback');
+          response = await api.post('/api/auth/demo-login', formData);
+        } else {
+          throw err;
+        }
       }
       
-      // Store token and user info
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Store the token and user role in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userRole', response.data.user.role);
       
       // Redirect to dashboard
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -106,22 +106,6 @@ const Login = () => {
               onChange={handleChange}
             />
             
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="role-label">Role</InputLabel>
-              <Select
-                labelId="role-label"
-                id="role"
-                name="role"
-                value={formData.role}
-                label="Role"
-                onChange={handleChange}
-              >
-                <MenuItem value="hr">HR Manager</MenuItem>
-                <MenuItem value="admin">Administrator</MenuItem>
-                <MenuItem value="employee">Employee</MenuItem>
-              </Select>
-            </FormControl>
-            
             <Button
               type="submit"
               fullWidth
@@ -132,9 +116,20 @@ const Login = () => {
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
             
-            <Typography variant="body2" color="textSecondary" align="center">
-              Demo credentials: user / password
-            </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="textSecondary" align="center" gutterBottom>
+                Demo credentials:
+              </Typography>
+              <Typography variant="body2" color="textSecondary" align="center">
+                Admin: user / password
+              </Typography>
+              <Typography variant="body2" color="textSecondary" align="center">
+                HR: hr / password
+              </Typography>
+              <Typography variant="body2" color="textSecondary" align="center">
+                Employee: employee / password
+              </Typography>
+            </Box>
           </Box>
         </Paper>
       </Box>

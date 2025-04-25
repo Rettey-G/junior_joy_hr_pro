@@ -43,9 +43,15 @@ io.on('connection', (socket) => {
   });
 });
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/employees', require('./routes/employees'));
+// Import routes
+const authRoutes = require('./routes/auth');
+const employeeRoutes = require('./routes/employees');
+const userRoutes = require('./routes/users');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

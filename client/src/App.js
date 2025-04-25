@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
+import Users from './pages/Users';
 
 // Components
 import Navbar from './components/Navbar';
@@ -37,20 +38,11 @@ function App() {
         <div className="App">
           {isAuthenticated() && <Navbar />}
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route 
-              path="/dashboard" 
-              element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/employees" 
-              element={isAuthenticated() ? <Employees /> : <Navigate to="/login" />} 
-            />
-            <Route 
-              path="/payroll" 
-              element={isAuthenticated() ? <Payroll /> : <Navigate to="/login" />} 
-            />
-            <Route path="/" element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} />} />
+            <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/" />} />
+            <Route path="/" element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/employees" element={isAuthenticated() ? <Employees /> : <Navigate to="/login" />} />
+            <Route path="/payroll" element={isAuthenticated() ? <Payroll /> : <Navigate to="/login" />} />
+            <Route path="/users" element={isAuthenticated() ? <Users /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </Router>

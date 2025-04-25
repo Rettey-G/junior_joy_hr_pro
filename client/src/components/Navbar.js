@@ -13,12 +13,16 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const userRole = localStorage.getItem('userRole');
+  const isAdmin = userRole === 'admin';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
     navigate('/login');
   };
 
@@ -33,7 +37,7 @@ const Navbar = () => {
           <Button 
             color="inherit" 
             component={Link} 
-            to="/dashboard"
+            to="/"
             startIcon={<DashboardIcon />}
           >
             Dashboard
@@ -41,7 +45,7 @@ const Navbar = () => {
           
           <Button 
             color="inherit" 
-            component={Link} 
+            component={Link}
             to="/employees"
             startIcon={<PeopleIcon />}
           >
@@ -50,19 +54,30 @@ const Navbar = () => {
           
           <Button 
             color="inherit" 
-            component={Link} 
+            component={Link}
             to="/payroll"
             startIcon={<AttachMoneyIcon />}
           >
             Payroll
           </Button>
           
+          {isAdmin && (
+            <Button 
+              color="inherit" 
+              component={Link}
+              to="/users"
+              startIcon={<ManageAccountsIcon />}
+            >
+              Users
+            </Button>
+          )}
+          
           <IconButton color="inherit" onClick={handleLogout}>
             <LogoutIcon />
           </IconButton>
           
           <Avatar sx={{ ml: 2, bgcolor: 'secondary.main' }}>
-            HR
+            {userRole?.charAt(0).toUpperCase() || 'U'}
           </Avatar>
         </Box>
       </Toolbar>
