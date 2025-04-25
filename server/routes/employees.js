@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const Employee = require('../models/Employee');
+// Using mock database instead of MongoDB model
 
 // GET all employees
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   try {
-    const employees = await Employee.find().populate('manager');
+    // Access the global mock database
+    const employees = global.db.employees;
     res.json(employees);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,9 +14,9 @@ router.get('/', async (req, res) => {
 });
 
 // GET employee by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id).populate('manager');
+    const employee = global.db.findEmployee(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Not found' });
     res.json(employee);
   } catch (err) {
@@ -24,20 +25,19 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create employee
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
   try {
-    const employee = new Employee(req.body);
-    await employee.save();
-    res.status(201).json(employee);
+    const newEmployee = global.db.addEmployee(req.body);
+    res.status(201).json(newEmployee);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 // PUT update employee
-router.put('/:id', async (req, res) => {
+router.put('/:id', (req, res) => {
   try {
-    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const employee = global.db.updateEmployee(req.params.id, req.body);
     if (!employee) return res.status(404).json({ error: 'Not found' });
     res.json(employee);
   } catch (err) {
@@ -46,11 +46,11 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE employee
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (req, res) => {
   try {
-    const employee = await Employee.findByIdAndDelete(req.params.id);
+    const employee = global.db.deleteEmployee(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Not found' });
-    res.json({ msg: 'Deleted' });
+    res.json({ msg: 'Deleted', employee });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

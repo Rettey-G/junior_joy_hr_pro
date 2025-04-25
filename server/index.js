@@ -17,21 +17,54 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-// Use a simple MongoDB Atlas connection string without SRV lookup
-const MONGODB_URI = 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/junior_joy_hr?retryWrites=true&w=majority';
+// MOCK DATABASE FOR DEMONSTRATION
+// This bypasses MongoDB connection issues in cloud environments
+console.log('Setting up mock database for demonstration');
 
-// Set DNS lookup options to avoid SRV issues
-const connectionOptions = {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  family: 4  // Force IPv4
+// Create mock data
+const mockEmployees = [
+  { id: '1', name: 'John Doe', email: 'john@example.com', department: 'Engineering', salary: 85000 },
+  { id: '2', name: 'Jane Smith', email: 'jane@example.com', department: 'Marketing', salary: 75000 },
+  { id: '3', name: 'Bob Johnson', email: 'bob@example.com', department: 'HR', salary: 65000 }
+];
+
+// Mock DB interface
+const mockDB = {
+  employees: mockEmployees,
+  findEmployee: (id) => mockEmployees.find(emp => emp.id === id),
+  addEmployee: (employee) => {
+    const newEmployee = { ...employee, id: Date.now().toString() };
+    mockEmployees.push(newEmployee);
+    return newEmployee;
+  },
+  updateEmployee: (id, data) => {
+    const index = mockEmployees.findIndex(emp => emp.id === id);
+    if (index !== -1) {
+      mockEmployees[index] = { ...mockEmployees[index], ...data };
+      return mockEmployees[index];
+    }
+    return null;
+  },
+  deleteEmployee: (id) => {
+    const index = mockEmployees.findIndex(emp => emp.id === id);
+    if (index !== -1) {
+      const deleted = mockEmployees[index];
+      mockEmployees.splice(index, 1);
+      return deleted;
+    }
+    return null;
+  }
 };
 
-// Connect with options
-mongoose.connect(process.env.DB_URI || process.env.MONGODB_URI || MONGODB_URI, connectionOptions)
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Make mockDB available globally
+global.db = mockDB;
+
+console.log('Mock database initialized successfully');
+
+// For real MongoDB connection (commented out due to DNS issues)
+// mongoose.connect(process.env.MONGODB_URI)
+//   .then(() => console.log('Connected to MongoDB Atlas'))
+//   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Socket.io logic
 io.on('connection', (socket) => {
