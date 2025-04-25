@@ -18,11 +18,18 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-// Use direct connection instead of SRV lookup to avoid DNS issues
-const MONGODB_URI = 'mongodb://Rettey:Adhu1447@ac-qlcfxkf-shard-00-00.spr2o17.mongodb.net:27017,ac-qlcfxkf-shard-00-01.spr2o17.mongodb.net:27017,ac-qlcfxkf-shard-00-02.spr2o17.mongodb.net:27017/junior_joy_hr?ssl=true&replicaSet=atlas-a7ib0z-shard-0&authSource=admin&retryWrites=true&w=majority';
+// Use a simple MongoDB Atlas connection string without SRV lookup
+const MONGODB_URI = 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/junior_joy_hr?retryWrites=true&w=majority';
 
-// Try multiple connection methods
-mongoose.connect(process.env.DB_URI || process.env.MONGODB_URI || MONGODB_URI)
+// Set DNS lookup options to avoid SRV issues
+const connectionOptions = {
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  family: 4  // Force IPv4
+};
+
+// Connect with options
+mongoose.connect(process.env.DB_URI || process.env.MONGODB_URI || MONGODB_URI, connectionOptions)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
