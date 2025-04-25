@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, TextField, Button, MenuItem, FormControl, InputLabel, Select,
+  TableHead, TableRow, Button, MenuItem, FormControl, InputLabel, Select,
   Card, CardContent, Divider, CircularProgress, Alert
 } from '@mui/material';
-import { format } from 'date-fns';
 import api from '../services/api';
 
 const PayrollDetails = () => {

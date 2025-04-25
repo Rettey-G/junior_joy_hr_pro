@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, Button, Card, CardContent, 
-  CircularProgress, Alert, Tab, Tabs, Divider, Select, MenuItem,
+  CircularProgress, Alert, Tab, Tabs, Select, MenuItem,
   FormControl, InputLabel
 } from '@mui/material';
 import { PictureAsPdf, CloudDownload, BarChart, PieChart, ShowChart } from '@mui/icons-material';
@@ -17,7 +17,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import { format } from 'date-fns';
 import api from '../services/api';
 
