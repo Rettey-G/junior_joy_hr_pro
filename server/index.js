@@ -27,6 +27,7 @@ const MONGODB_URI = 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('Successfully connected to MongoDB Atlas');
+    console.log('Ready to serve employee data with salary and cityIsland fields');
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
