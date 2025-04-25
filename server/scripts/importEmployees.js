@@ -93,12 +93,17 @@ mongoose.connect(MONGODB_URI)
     console.log('Successfully connected to MongoDB Atlas');
     
     try {
-      // Import Employee model
-      const Employee = require('../models/Employee');
+      // First, drop the collection completely to remove any indexes from the old schema
+      await mongoose.connection.dropCollection('employees').catch(err => {
+        // Ignore error if collection doesn't exist
+        if (err.codeName !== 'NamespaceNotFound') {
+          console.error('Error dropping collection:', err);
+        }
+      });
+      console.log('Dropped employees collection to remove old indexes');
       
-      // Clear existing data (optional)
-      await Employee.deleteMany({});
-      console.log('Cleared existing employee data');
+      // Import Employee model - this will recreate the collection with the new schema
+      const Employee = require('../models/Employee');
       
       // Import sample data
       const result = await Employee.insertMany(sampleEmployees);
