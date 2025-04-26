@@ -135,7 +135,7 @@ const Training = () => {
         console.error('Error fetching training data:', err);
         setError('Failed to load training data. Using demo data instead.');
         // Use demo data if API fails
-        useDemoData();
+        generateDemoData();
         setLoading(false);
       }
     };
@@ -311,7 +311,7 @@ const Training = () => {
   };
   
   // Use demo data if API calls fail
-  const useDemoData = () => {
+  const generateDemoData = () => {
     // Demo employees if needed
     if (employees.length === 0) {
       const mockEmployees = [

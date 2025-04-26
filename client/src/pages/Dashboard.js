@@ -145,7 +145,7 @@ const Dashboard = () => {
         setError('Failed to fetch employee data. Using demo data instead.');
         
         // Use demo data if API fails
-        useDemoData();
+        generateDemoData();
         setLoading(false);
       }
     };
@@ -336,7 +336,7 @@ const Dashboard = () => {
   };
   
   // Use demo data if API fails
-  const useDemoData = () => {
+  const generateDemoData = () => {
     // Set demo stats
     setStats({
       totalEmployees: 42,

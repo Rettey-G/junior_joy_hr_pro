@@ -359,11 +359,14 @@ const LeavePlan = () => {
         <Paper sx={{ p: 2, mb: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Select Employee</InputLabel>
+              <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                Select Employee to View/Apply for Leave
+              </Typography>
+              <FormControl fullWidth size="large">
+                <InputLabel>Employee Name</InputLabel>
                 <Select
                   value={selectedEmployee}
-                  label="Select Employee"
+                  label="Employee Name"
                   onChange={(e) => {
                     setSelectedEmployee(e.target.value);
                     if (e.target.value) {
@@ -387,25 +390,38 @@ const LeavePlan = () => {
                       }
                     }
                   }}
+                  displayEmpty
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      },
+                    },
+                  }}
                   disabled={loading || employees.length === 0}
+                  sx={{ minWidth: 300 }}
                 >
-                  <MenuItem value="">Select Employee</MenuItem>
+                  <MenuItem value="">
+                    <em>Select an employee</em>
+                  </MenuItem>
                   {employees.map(employee => (
                     <MenuItem key={employee.id} value={employee.id}>
-                      {employee.name}
+                      <strong>{employee.id}</strong> - {employee.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} md={6} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', alignItems: 'center' }}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center', alignItems: 'flex-end' }}>
               <Button 
                 variant="outlined" 
                 startIcon={<CalendarMonth />}
                 onClick={() => handlePublicHolidayDialogOpen()}
+                sx={{ width: '220px', height: '45px' }}
+                size="large"
               >
-                Public Holidays
+                PUBLIC HOLIDAYS
               </Button>
               
               <Button 
@@ -420,8 +436,15 @@ const LeavePlan = () => {
                   setDialogOpen(true);
                 }}
                 disabled={!selectedEmployee}
+                sx={{ 
+                  width: '220px', 
+                  height: '45px', 
+                  fontWeight: 'bold',
+                  fontSize: '1rem'
+                }}
+                size="large"
               >
-                Apply for Leave
+                APPLY FOR LEAVE
               </Button>
             </Grid>
           </Grid>
