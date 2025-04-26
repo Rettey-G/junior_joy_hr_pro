@@ -14,6 +14,7 @@ import LeavePlan from './pages/LeavePlan';
 import OrgChart from './pages/OrgChart';
 import Reports from './pages/Reports';
 import TimeAttendance from './pages/TimeAttendance';
+import Training from './pages/Training';
 
 // Components
 import Navbar from './components/Navbar';
@@ -40,7 +41,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <div className="App">
+        <div className="App" style={{ paddingTop: '64px' }}>
           {isAuthenticated() && <Navbar />}
           <Routes>
             <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/" />} />
@@ -53,6 +54,7 @@ function App() {
             <Route path="/reports" element={isAuthenticated() ? <Reports /> : <Navigate to="/login" />} />
             <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
             <Route path="/users" element={isAuthenticated() ? <UserManagement /> : <Navigate to="/login" />} />
+            <Route path="/training" element={isAuthenticated() ? <Training /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </Router>

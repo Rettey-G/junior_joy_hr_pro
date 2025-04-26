@@ -19,6 +19,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import SchoolIcon from '@mui/icons-material/School';
 
 
 const Navbar = () => {
@@ -33,7 +34,7 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Junior Joy HR Pro
@@ -118,6 +119,16 @@ const Navbar = () => {
             size="small"
           >
             Time & Attendance
+          </Button>
+          
+          <Button 
+            color="inherit" 
+            component={Link}
+            to="/training"
+            startIcon={<SchoolIcon />}
+            size="small"
+          >
+            Training
           </Button>
           
           {isAdmin && (
