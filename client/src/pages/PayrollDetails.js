@@ -502,27 +502,45 @@ const PayrollDetails = () => {
       </Typography>
       
       {/* Filter section */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: 3 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom color="primary.main">
+            Search & Filter
+          </Typography>
+          <Divider />
+        </Box>
+        
         <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              label="Search"
+              label="Search by ID, Name or Department"
+              placeholder="Type to search..."
               variant="outlined"
               value={searchTerm}
               onChange={handleSearch}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                },
+                '& .MuiInputBase-input': {
+                  padding: '14px 14px',
+                  fontSize: '1rem',
+                }
+              }}
               InputProps={{
-                startAdornment: <Search color="action" sx={{ mr: 1 }} />
+                startAdornment: <Search color="primary" sx={{ mr: 1 }} />
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth variant="outlined">
               <InputLabel>Department</InputLabel>
               <Select
                 value={selectedDepartment}
                 onChange={handleDepartmentFilter}
                 label="Department"
+                sx={{ borderRadius: 2 }}
               >
                 <MenuItem value="">All Departments</MenuItem>
                 {getDepartments().map(dept => (
@@ -531,13 +549,14 @@ const PayrollDetails = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth variant="outlined">
               <InputLabel>Employee</InputLabel>
               <Select
                 value={selectedEmployee}
                 onChange={handleEmployeeFilter}
                 label="Employee"
+                sx={{ borderRadius: 2 }}
               >
                 <MenuItem value="">All Employees</MenuItem>
                 {employees.map(emp => (
@@ -546,27 +565,40 @@ const PayrollDetails = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
-            <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 1 }}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                startIcon={<Add />}
-                onClick={handleAddEmployee}
-              >
-                Add
-              </Button>
-              <Button 
-                variant="outlined"
-                color="secondary"
-                startIcon={<LocalAtm />}
-                onClick={handleOpenServiceChargeDialog}
-              >
-                Service Charge
-              </Button>
-            </Box>
-          </Grid>
         </Grid>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, flexWrap: 'wrap', gap: 1 }}>
+          <Button 
+            variant="outlined" 
+            color="secondary"
+            startIcon={<CloudDownload />} 
+            onClick={() => console.log('Export payroll')}
+            sx={{ borderRadius: 2 }}
+          >
+            Export
+          </Button>
+              
+          <Box>
+            <Button 
+              variant="outlined" 
+              color="primary"
+              onClick={() => setServiceChargeDialogOpen(true)}
+              sx={{ mr: 1, borderRadius: 2 }}
+            >
+              Service Charge
+            </Button>
+                
+            <Button 
+              variant="contained" 
+              color="primary" 
+              startIcon={<Add />} 
+              onClick={handleAddEmployee}
+              sx={{ borderRadius: 2 }}
+            >
+              Add Employee
+            </Button>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Summary cards */}

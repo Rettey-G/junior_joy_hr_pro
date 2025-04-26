@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import {
   Container,
@@ -34,9 +34,14 @@ import {
   Tab,
   Chip,
   Divider,
-  Stack
+  Stack,
+  Avatar,
+  Badge,
+  Tooltip,
+  CardMedia,
+  CardActions
 } from '@mui/material';
-import { Add, Edit, Delete, FilterList } from '@mui/icons-material';
+import { Add, Edit, Delete, FilterList, PhotoCamera, Person, PersonAdd, Visibility } from '@mui/icons-material';
 import { format } from 'date-fns';
 
 const Employees = () => {
@@ -68,6 +73,9 @@ const Employees = () => {
     salaryMVR: 0,
     image: ''
   });
+  
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -167,6 +175,27 @@ const Employees = () => {
       ...formData,
       [name]: value
     });
+  };
+  
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({
+          ...formData,
+          image: reader.result
+        });
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Trigger file input click
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   // Save employee (create or update)
@@ -460,60 +489,76 @@ const Employees = () => {
           // Mobile Card View
           <Stack spacing={2}>
             {employees.map((employee) => (
-              <Card key={employee._id} elevation={2}>
-                <CardContent sx={{ pb: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">{employee.name}</Typography>
-                    <Chip size="small" label={employee.empNo} color="primary" variant="outlined" />
+              <Card key={employee._id} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: 'primary.light', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {employee.image ? (
+                      <Avatar src={employee.image} alt={employee.name} sx={{ width: 50, height: 50, border: '2px solid white' }} />
+                    ) : (
+                      <Avatar sx={{ width: 50, height: 50, bgcolor: 'primary.main', border: '2px solid white' }}>
+                        {employee.name.charAt(0)}
+                      </Avatar>
+                    )}
+                    <Box sx={{ ml: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="white">{employee.name}</Typography>
+                      <Chip size="small" label={employee.empNo} sx={{ backgroundColor: 'white', mt: 0.5 }} />
+                    </Box>
                   </Box>
-                  <Divider sx={{ mb: 1.5 }} />
-                  
-                  <Grid container spacing={1}>
+                </Box>
+                
+                <CardContent sx={{ pb: 1 }}>
+                  <Grid container spacing={1.5}>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="textSecondary">ID Number</Typography>
-                      <Typography variant="body2">{employee.idNumber}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Designation</Typography>
-                      <Typography variant="body2" noWrap>{employee.designation}</Typography>
+                      <Typography variant="body2" fontWeight="medium">{employee.idNumber}</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="textSecondary">Department</Typography>
-                      <Typography variant="body2" noWrap>{employee.department}</Typography>
+                      <Typography variant="body2" fontWeight="medium" noWrap>{employee.department}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Designation</Typography>
+                      <Typography variant="body2" fontWeight="medium" noWrap>{employee.designation}</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="textSecondary">Work Site</Typography>
-                      <Typography variant="body2">{employee.workSite}</Typography>
+                      <Typography variant="body2" fontWeight="medium">{employee.workSite}</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="textSecondary">Salary (USD)</Typography>
-                      <Typography variant="body2">${employee.salaryUSD || 0}</Typography>
+                      <Typography variant="body2" fontWeight="medium">${employee.salaryUSD || 0}</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="caption" color="textSecondary">Salary (MVR)</Typography>
-                      <Typography variant="body2">{employee.salaryMVR || 0} MVR</Typography>
+                      <Typography variant="body2" fontWeight="medium">{employee.salaryMVR || 0} MVR</Typography>
                     </Grid>
                   </Grid>
+                </CardContent>
+                
+                <Divider />
+                
+                <CardActions sx={{ justifyContent: 'flex-end', p: 1 }}>
+                  <Tooltip title="View Details">
+                    <IconButton size="small" color="primary">
+                      <Visibility fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                   
                   {isAdmin && (
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                      <IconButton 
-                        size="small" 
-                        color="primary"
-                        onClick={() => handleOpenDialog(employee)}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        color="error"
-                        onClick={() => handleDeleteEmployee(employee._id)}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Box>
+                    <>
+                      <Tooltip title="Edit Employee">
+                        <IconButton size="small" color="primary" onClick={() => handleOpenDialog(employee)}>
+                          <Edit fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete Employee">
+                        <IconButton size="small" color="error" onClick={() => handleDeleteEmployee(employee._id)}>
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
                   )}
-                </CardContent>
+                </CardActions>
               </Card>
             ))}
           </Stack>
@@ -588,6 +633,62 @@ const Employees = () => {
         </DialogTitle>
         <DialogContent dividers sx={{ px: isMobile ? 2 : 3 }}>
           <Grid container spacing={2}>
+            <Grid item xs={12} className="text-center">
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+                {imagePreview || formData.image ? (
+                  <Badge
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    badgeContent={
+                      <IconButton 
+                        onClick={triggerFileInput} 
+                        sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
+                        size="small"
+                      >
+                        <PhotoCamera fontSize="small" />
+                      </IconButton>
+                    }
+                  >
+                    <Avatar 
+                      src={imagePreview || formData.image} 
+                      alt={formData.name} 
+                      sx={{ width: 100, height: 100, border: '3px solid #e0e0e0' }} 
+                    />
+                  </Badge>
+                ) : (
+                  <Badge
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    badgeContent={
+                      <IconButton 
+                        onClick={triggerFileInput} 
+                        sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
+                        size="small"
+                      >
+                        <PhotoCamera fontSize="small" />
+                      </IconButton>
+                    }
+                  >
+                    <Avatar 
+                      sx={{ width: 100, height: 100, bgcolor: 'primary.light', border: '3px solid #e0e0e0' }} 
+                    >
+                      <PersonAdd sx={{ fontSize: 40 }} />
+                    </Avatar>
+                  </Badge>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
+                <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                  Click the camera icon to upload photo
+                </Typography>
+              </Box>
+            </Grid>
+            
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth

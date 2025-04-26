@@ -91,11 +91,11 @@ const publicHolidays = [
   { date: '2025-12-25', name: 'Christmas Day' }
 ];
 
-// Function to calculate leave balance
-const calculateLeaveBalance = (employee, leaveType) => {
+// Function to calculate leave balance with more accurate calculation
+const calculateLeaveBalance = (employee, leaveType, leaveRecords) => {
   // Get leave type definition
   const leaveTypeObj = leaveTypes.find(type => type.value === leaveType);
-  if (!leaveTypeObj) return 0;
+  if (!leaveTypeObj) return { entitlement: 0, used: 0, remaining: 0 };
   
   // Base entitlement
   let entitlement = leaveTypeObj.entitlement;
@@ -116,10 +116,39 @@ const calculateLeaveBalance = (employee, leaveType) => {
   // Special case for maternity leave based on gender
   if (leaveType === 'maternity') {
     // Assuming 'gender' field exists in employee data
-    entitlement = employee.gender === 'female' ? 60 : 30; // 60 for women, 30 for guests
+    entitlement = employee.gender === 'female' ? 60 : 0; // 60 for women, 0 for men
+  }
+
+  // Special case for paternity leave based on gender
+  if (leaveType === 'paternity') {
+    // Only men get paternity leave
+    entitlement = employee.gender === 'male' ? 3 : 0;
   }
   
-  return entitlement;
+  // Calculate used leave days for this type
+  const approvedLeaves = leaveRecords.filter(leave => 
+    leave.employeeId === employee.id && 
+    leave.leaveType === leaveType && 
+    leave.status === 'approved'
+  );
+  
+  const usedDays = approvedLeaves.reduce((total, leave) => total + leave.days, 0);
+  
+  // Calculate pending leave days (these are not deducted yet but good to show)
+  const pendingLeaves = leaveRecords.filter(leave => 
+    leave.employeeId === employee.id && 
+    leave.leaveType === leaveType && 
+    leave.status === 'pending'
+  );
+  
+  const pendingDays = pendingLeaves.reduce((total, leave) => total + leave.days, 0);
+  
+  return {
+    entitlement,
+    used: usedDays,
+    pending: pendingDays,
+    remaining: entitlement - usedDays
+  };
 };
 
 const LeavePlan = () => {
@@ -132,6 +161,7 @@ const LeavePlan = () => {
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [leaveBalances, setLeaveBalances] = useState({});
+  const [currentView, setCurrentView] = useState('calendar'); // 'calendar' or 'list'
   const [leaveBalanceDialogOpen, setLeaveBalanceDialogOpen] = useState(false);
   const [publicHolidayDialogOpen, setPublicHolidayDialogOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -332,12 +362,17 @@ const LeavePlan = () => {
   // Get unique departments for filtering
   const departments = [...new Set(leaves.map(leave => leave.department))];
 
-  // Calculate leave statistics
+  // Calculate leave statistics with improved filtering
   const stats = {
     pending: filteredLeaves.filter(leave => leave.status === 'pending').length,
     approved: filteredLeaves.filter(leave => leave.status === 'approved').length,
     rejected: filteredLeaves.filter(leave => leave.status === 'rejected').length,
-    total: filteredLeaves.length
+    total: filteredLeaves.length,
+    // Add stats by leave type
+    byType: leaveTypes.reduce((acc, type) => {
+      acc[type.value] = filteredLeaves.filter(leave => leave.leaveType === type.value).length;
+      return acc;
+    }, {})
   };
 
   // This comment replaces the removed handleLeaveBalanceDialogClose function which was unused
@@ -350,41 +385,53 @@ const LeavePlan = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Leave Management</Typography>
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Manage leave requests and view leave balances
-        </Typography>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>Leave Management</Typography>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 3 }}>
+          <Typography variant="subtitle1" color="text.secondary">
+            Manage leave requests and view leave balances
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, mt: { xs: 1, sm: 0 } }}>
+            {/* Summary statistics badges */}
+            <Paper sx={{ px: 2, py: 1, bgcolor: 'primary.light', color: 'primary.contrastText', borderRadius: 2 }}>
+              <Typography variant="body2"><strong>{stats.total}</strong> Total</Typography>
+            </Paper>
+            <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
+              <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
+            </Paper>
+            <Paper sx={{ px: 2, py: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 2 }}>
+              <Typography variant="body2"><strong>{stats.approved}</strong> Approved</Typography>
+            </Paper>
+          </Box>
+        </Box>
         
-        {/* Employee selection and leave balance */}
-        <Paper sx={{ p: 2, mb: 3 }}>
+        {/* Employee selection and leave balance - improved mobile responsiveness */}
+        <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+              <Typography variant="subtitle1" gutterBottom fontWeight="bold" color="primary.main">
                 Select Employee to View/Apply for Leave
               </Typography>
-              <FormControl fullWidth size="large">
+              <FormControl fullWidth size="large" variant="outlined">
                 <InputLabel>Employee Name</InputLabel>
                 <Select
                   value={selectedEmployee}
                   label="Employee Name"
+                  sx={{ 
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderRadius: 2 }
+                    }
+                  }}
                   onChange={(e) => {
                     setSelectedEmployee(e.target.value);
                     if (e.target.value) {
-                      // Calculate and show leave balances for selected employee
+                      // Calculate and show leave balances for selected employee with improved calculation
                       const employee = employees.find(emp => emp.id === e.target.value);
                       if (employee) {
-                        // Calculate balances
+                        // Calculate accurate balances for each leave type
                         const balances = {};
                         leaveTypes.forEach(type => {
-                          const entitlement = calculateLeaveBalance(employee, type.value);
-                          const usedLeaves = leaveRecords
-                            .filter(leave => leave.employeeId === employee.id && leave.leaveType === type.value)
-                            .reduce((total, leave) => total + leave.days, 0);
-                          balances[type.value] = {
-                            entitlement,
-                            used: usedLeaves,
-                            remaining: entitlement - usedLeaves
-                          };
+                          balances[type.value] = calculateLeaveBalance(employee, type.value, leaveRecords);
                         });
                         setLeaveBalances(balances);
                       }
@@ -413,12 +460,12 @@ const LeavePlan = () => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center', alignItems: 'flex-end' }}>
+            <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2, justifyContent: { xs: 'space-between', md: 'center' }, alignItems: { xs: 'center', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
               <Button 
                 variant="outlined" 
                 startIcon={<CalendarMonth />}
                 onClick={() => handlePublicHolidayDialogOpen()}
-                sx={{ width: '220px', height: '45px' }}
+                sx={{ width: { xs: '48%', md: '220px' }, height: '45px', borderRadius: 2 }}
                 size="large"
               >
                 PUBLIC HOLIDAYS
@@ -437,10 +484,11 @@ const LeavePlan = () => {
                 }}
                 disabled={!selectedEmployee}
                 sx={{ 
-                  width: '220px', 
+                  width: { xs: '48%', md: '220px' }, 
                   height: '45px', 
                   fontWeight: 'bold',
-                  fontSize: '1rem'
+                  fontSize: { xs: '0.9rem', md: '1rem' },
+                  borderRadius: 2
                 }}
                 size="large"
               >
@@ -449,42 +497,83 @@ const LeavePlan = () => {
             </Grid>
           </Grid>
           
-          {/* Leave balance display */}
+          {/* Leave balance display with improved visual presentation */}
           {selectedEmployee && Object.keys(leaveBalances).length > 0 && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Leave Balance for {employees.find(emp => emp.id === selectedEmployee)?.name}
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+                <Typography variant="h6" fontWeight="bold" color="primary.main">
+                  Leave Balance for {employees.find(emp => emp.id === selectedEmployee)?.name}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button 
+                    variant={currentView === 'calendar' ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => setCurrentView('calendar')}
+                    startIcon={<CalendarMonth />}
+                  >
+                    Calendar
+                  </Button>
+                  <Button 
+                    variant={currentView === 'list' ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => setCurrentView('list')}
+                    startIcon={<CalendarMonth />}
+                  >
+                    List
+                  </Button>
+                </Box>
+              </Box>
               
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 {leaveTypes.map(type => {
-                  const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, remaining: 0 };
+                  const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, pending: 0, remaining: 0 };
+                  // Skip leave types with zero entitlement (not applicable to this employee)
+                  if (balance.entitlement === 0) return null;
+                  
                   return (
-                    <Grid item xs={6} sm={4} md={3} key={type.value}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={type.value}>
                       <Paper 
-                        elevation={1} 
+                        elevation={3} 
                         sx={{ 
                           p: 2, 
                           textAlign: 'center',
-                          bgcolor: balance.remaining <= 0 ? 'error.light' : 
-                                  balance.remaining < 5 ? 'warning.light' : 'success.light',
-                          color: balance.remaining <= 0 ? 'error.contrastText' : 
-                                 balance.remaining < 5 ? 'warning.contrastText' : 'success.contrastText',
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: balance.remaining <= 0 ? 'error.main' : 
+                                      balance.remaining < 5 ? 'warning.main' : 'success.main',
+                          bgcolor: balance.remaining <= 0 ? 'rgba(211, 47, 47, 0.1)' : 
+                                  balance.remaining < 5 ? 'rgba(237, 108, 2, 0.1)' : 'rgba(46, 125, 50, 0.1)',
                           height: '100%',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'center'
                         }}
                       >
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
                           {type.label}
                         </Typography>
-                        <Typography variant="h4">
-                          {balance.remaining}
-                        </Typography>
-                        <Typography variant="body2">
-                          {balance.used} used / {balance.entitlement} total
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', my: 1 }}>
+                          <Typography variant="h3" fontWeight="bold" color={balance.remaining <= 0 ? 'error.main' : 
+                                           balance.remaining < 5 ? 'warning.main' : 'success.main'}>
+                            {balance.remaining}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                            days<br/>remaining
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>{balance.used}</strong> used
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>{balance.entitlement}</strong> total
+                          </Typography>
+                        </Box>
+                        {balance.pending > 0 && (
+                          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                            <strong>{balance.pending}</strong> days pending approval
+                          </Typography>
+                        )}
                       </Paper>
                     </Grid>
                   );

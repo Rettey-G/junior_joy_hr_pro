@@ -51,6 +51,7 @@ const Dashboard = () => {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState({
     totalEmployees: 0,
     newHires: 0,
@@ -87,10 +88,10 @@ const Dashboard = () => {
   });
 
   const [worksiteData, setWorksiteData] = useState({
-    labels: [],
+    labels: ['Office', 'Express 1', 'Express 3'],
     datasets: [{
-      data: [],
-      backgroundColor: [],
+      data: [15, 10, 5],
+      backgroundColor: ['#4caf50', '#ff9800', '#2196f3'],
       borderWidth: 1,
     }],
   });
@@ -123,6 +124,39 @@ const Dashboard = () => {
     { id: 2, text: 'Quarterly Review', date: 'Next Week' },
     { id: 3, text: 'Benefits Enrollment', date: 'May 15' },
   ];
+
+  // Get current user data
+  useEffect(() => {
+    const fetchCurrentUser = () => {
+      // Get user data from localStorage
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setCurrentUser(parsedUser);
+        } catch (err) {
+          console.error('Error parsing user data:', err);
+          // If no valid user data, use fallback
+          setCurrentUser({
+            name: 'Junior Joy HR Admin',
+            role: localStorage.getItem('userRole') || 'admin',
+            lastLogin: new Date().toLocaleDateString(),
+            avatar: '/juniorjoyhr.jpg'
+          });
+        }
+      } else {
+        // Set default user if none found
+        setCurrentUser({
+          name: 'Junior Joy HR Admin',
+          role: localStorage.getItem('userRole') || 'admin',
+          lastLogin: new Date().toLocaleDateString(),
+          avatar: '/juniorjoyhr.jpg'
+        });
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
 
   // Fetch employee data
   useEffect(() => {
@@ -343,60 +377,45 @@ const Dashboard = () => {
   
   // Use demo data if API fails
   const generateDemoData = () => {
-    // Set demo stats
     setStats({
-      totalEmployees: 42,
-      newHires: 5,
-      departments: 6,
-      averageSalary: 65000
+      totalEmployees: 35,
+      newHires: 4,
+      averageSalary: 4200,
+      departments: 5
     });
     
-    // Set demo department data
     setDepartmentData({
-      labels: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Operations'],
+      labels: ['Operations', 'Admin', 'Engineering', 'Finance', 'Sales & Marketing'],
       datasets: [{
-        data: [12, 8, 10, 4, 5, 3],
-        backgroundColor: [
-          '#2196f3', '#f44336', '#4caf50', '#ff9800', 
-          '#9c27b0', '#607d8b'
-        ],
+        data: [15, 7, 8, 5, 3],
+        backgroundColor: ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0'],
         borderWidth: 1,
       }],
     });
     
-    // Set demo nationality data
     setNationalityData({
-      labels: ['Thai', 'American', 'Chinese', 'Indian', 'Japanese', 'Other'],
+      labels: ['Maldivian', 'Bangladeshi', 'Sri Lankan', 'Indian'],
       datasets: [{
-        data: [18, 8, 6, 4, 3, 3],
-        backgroundColor: [
-          '#4caf50', '#2196f3', '#f44336', '#ff9800', 
-          '#9c27b0', '#607d8b'
-        ],
+        data: [20, 8, 5, 2],
+        backgroundColor: ['#4caf50', '#2196f3', '#f44336', '#ff9800'],
         borderWidth: 1,
       }],
     });
     
-    // Set demo gender data
     setGenderData({
-      labels: ['Male', 'Female', 'Non-binary'],
+      labels: ['Male', 'Female'],
       datasets: [{
-        data: [24, 16, 2],
-        backgroundColor: [
-          '#2196f3', '#e91e63', '#9c27b0'
-        ],
+        data: [25, 10],
+        backgroundColor: ['#2196f3', '#e91e63'],
         borderWidth: 1,
       }],
     });
     
-    // Set demo worksite data
     setWorksiteData({
-      labels: ['Main Office', 'Branch A', 'Branch B', 'Remote'],
+      labels: ['Office', 'Express 1', 'Express 3'],
       datasets: [{
-        data: [20, 10, 7, 5],
-        backgroundColor: [
-          '#ff9800', '#4caf50', '#2196f3', '#f44336'
-        ],
+        data: [15, 10, 5],
+        backgroundColor: ['#4caf50', '#ff9800', '#2196f3'],
         borderWidth: 1,
       }],
     });
@@ -570,10 +589,28 @@ const Dashboard = () => {
                 options={{
                   maintainAspectRatio: false,
                   responsive: true,
+                  cutout: '25%',
+                  radius: '90%',
                   plugins: {
                     legend: {
                       position: 'bottom',
-                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                      display: true,
+                      labels: { 
+                        boxWidth: isMobile ? 10 : 15, 
+                        padding: 15,
+                        font: { size: isMobile ? 10 : 12, weight: 'bold' } 
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const label = context.label || '';
+                          const value = context.raw || 0;
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = Math.round((value / total) * 100);
+                          return `${label}: ${value} (${percentage}%)`;
+                        }
+                      }
                     }
                   }
                 }}
@@ -590,16 +627,34 @@ const Dashboard = () => {
                 Worksite Distribution
               </Box>
             </Typography>
-            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">
+            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">  
               <Pie 
                 data={worksiteData} 
                 options={{
                   maintainAspectRatio: false,
                   responsive: true,
+                  cutout: '25%',
+                  radius: '90%',
                   plugins: {
                     legend: {
                       position: 'bottom',
-                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                      display: true,
+                      labels: { 
+                        boxWidth: isMobile ? 10 : 15, 
+                        padding: 15,
+                        font: { size: isMobile ? 10 : 12, weight: 'bold' } 
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const label = context.label || '';
+                          const value = context.raw || 0;
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = Math.round((value / total) * 100);
+                          return `${label}: ${value} (${percentage}%)`;
+                        }
+                      }
                     }
                   }
                 }}
@@ -724,24 +779,81 @@ const Dashboard = () => {
       <Snackbar 
         open={!!notification} 
         autoHideDuration={6000} 
-        onClose={handleCloseNotification}
-        anchorOrigin={{ 
-          vertical: isMobile ? 'top' : 'bottom', 
-          horizontal: isMobile ? 'center' : 'right' 
-        }}
-        sx={{
-          width: isMobile ? '90%' : 'auto'
-        }}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseNotification} 
-          severity="info" 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <Alert severity="info" onClose={() => setNotification(null)}>
           {notification}
         </Alert>
       </Snackbar>
+      
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+          <CircularProgress />
+          <Typography variant="h6" sx={{ ml: 2 }}>Loading dashboard data...</Typography>
+        </Box>
+      ) : (
+        <>
+          {/* User Welcome Section */}
+          <Paper 
+            elevation={3} 
+            sx={{
+              p: 3,
+              mb: 4,
+              borderRadius: 2,
+              background: 'linear-gradient(to right, #3a7bd5, #00d2ff)',
+              color: 'white',
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box 
+                component="img"
+                src={currentUser?.avatar || '/juniorjoyhr.jpg'}
+                alt="User Avatar"
+                sx={{
+                  width: 70,
+                  height: 70,
+                  borderRadius: '50%',
+                  border: '3px solid white',
+                  objectFit: 'cover',
+                  backgroundColor: 'white'
+                }}
+              />
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                  Welcome back, {currentUser?.name.split(' ')[0] || 'User'}
+                </Typography>
+                <Typography variant="body1">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+                  Role: {currentUser?.role || 'Admin'} | Last login: {currentUser?.lastLogin || 'Today'}
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+              <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                <Notifications />
+                <Typography variant="body2">3 New Notifications</Typography>
+              </Paper>
+              <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                <Event />
+                <Typography variant="body2">2 Upcoming Events</Typography>
+              </Paper>
+            </Box>
+          </Paper>
+
+          {/* Stats Cards */}
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
+            Dashboard Overview
+          </Typography>
+        </>
+      )}
     </Box>
   );
 };

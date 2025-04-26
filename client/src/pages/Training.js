@@ -60,6 +60,7 @@ const Training = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Employee data
   const [employees, setEmployees] = useState([]);
@@ -80,6 +81,57 @@ const Training = () => {
   const [currentSession, setCurrentSession] = useState(null);
   const [sessionParticipants, setSessionParticipants] = useState([]);
   const [viewAttendanceDialogOpen, setViewAttendanceDialogOpen] = useState(false);
+  
+  // Handle dialog opening for adding a new trainer
+  const handleAddTrainer = () => {
+    setCurrentTrainer(null);
+    setTrainerForm({
+      id: `TR${String(trainers.length + 1).padStart(3, '0')}`,
+      name: '',
+      email: '',
+      phone: '',
+      specialization: '',
+      bio: '',
+      isExternal: false
+    });
+    setTrainerDialogOpen(true);
+  };
+  
+  // Handle dialog opening for adding a new program
+  const handleAddProgram = () => {
+    setCurrentProgram(null);
+    setProgramForm({
+      id: `TP${String(trainingPrograms.length + 1).padStart(3, '0')}`,
+      title: '',
+      description: '',
+      category: '',
+      duration: '',
+      skillLevel: 'beginner',
+      materials: '',
+      prerequisites: ''
+    });
+    setProgramDialogOpen(true);
+  };
+  
+  // Handle dialog opening for adding a new session
+  const handleAddSession = () => {
+    setCurrentSession(null);
+    setSessionForm({
+      id: `TS${String(trainingSessions.length + 1).padStart(3, '0')}`,
+      title: '',
+      programId: trainingPrograms.length > 0 ? trainingPrograms[0].id : '',
+      trainerId: trainers.length > 0 ? trainers[0].id : '',
+      startDate: new Date(),
+      endDate: new Date(),
+      location: '',
+      maxParticipants: 20,
+      status: 'scheduled',
+      notes: '',
+      participants: []
+    });
+    setSessionParticipants([]);
+    setSessionDialogOpen(true);
+  };
   
   // Form data for trainers
   const [trainerForm, setTrainerForm] = useState({
@@ -487,11 +539,116 @@ const Training = () => {
     );
   }
 
+  // Save trainer form data
+  const handleSaveTrainer = () => {
+    if (!trainerForm.name || !trainerForm.email) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    
+    const newTrainers = [...trainers];
+    
+    if (currentTrainer) {
+      // Update existing trainer
+      const index = newTrainers.findIndex(t => t.id === currentTrainer.id);
+      if (index !== -1) {
+        newTrainers[index] = {...trainerForm, id: currentTrainer.id};
+      }
+    } else {
+      // Add new trainer
+      newTrainers.push(trainerForm);
+    }
+    
+    setTrainers(newTrainers);
+    setTrainerDialogOpen(false);
+    setCurrentTrainer(null);
+    setSuccessMessage('Trainer saved successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+  
+  // Save program form data
+  const handleSaveProgram = () => {
+    if (!programForm.title || !programForm.description || !programForm.category) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    
+    const newPrograms = [...trainingPrograms];
+    
+    if (currentProgram) {
+      // Update existing program
+      const index = newPrograms.findIndex(p => p.id === currentProgram.id);
+      if (index !== -1) {
+        newPrograms[index] = {...programForm, id: currentProgram.id};
+      }
+    } else {
+      // Add new program
+      newPrograms.push(programForm);
+    }
+    
+    setTrainingPrograms(newPrograms);
+    setProgramDialogOpen(false);
+    setCurrentProgram(null);
+    setSuccessMessage('Training program saved successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+  
+  // Save session form data
+  const handleSaveSession = () => {
+    if (!sessionForm.title || !sessionForm.programId || !sessionForm.trainerId || !sessionForm.location) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    
+    // Validate dates
+    if (new Date(sessionForm.endDate) < new Date(sessionForm.startDate)) {
+      setError('End date cannot be before start date');
+      return;
+    }
+    
+    const newSessions = [...trainingSessions];
+    const updatedSessionForm = {
+      ...sessionForm,
+      participants: sessionParticipants.map(p => p.id)
+    };
+    
+    if (currentSession) {
+      // Update existing session
+      const index = newSessions.findIndex(s => s.id === currentSession.id);
+      if (index !== -1) {
+        newSessions[index] = {...updatedSessionForm, id: currentSession.id};
+      }
+    } else {
+      // Add new session
+      newSessions.push(updatedSessionForm);
+    }
+    
+    setTrainingSessions(newSessions);
+    setSessionDialogOpen(false);
+    setCurrentSession(null);
+    setSuccessMessage('Training session saved successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleCloseDialog = () => {
+    setTrainerDialogOpen(false);
+    setProgramDialogOpen(false);
+    setSessionDialogOpen(false);
+    setViewAttendanceDialogOpen(false);
+    setError(null);
+  };
+  
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       {error && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           {error}
+        </Alert>
+      )}
+      
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {successMessage}
         </Alert>
       )}
       
@@ -527,6 +684,322 @@ const Training = () => {
           getEmployeeById={getEmployeeById}
         />
       )}
+      
+      {/* Add Trainer Dialog */}
+      <Dialog open={trainerDialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{currentTrainer ? 'Edit Trainer' : 'Add New Trainer'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Name"
+                name="name"
+                fullWidth
+                variant="outlined"
+                value={trainerForm.name}
+                onChange={(e) => setTrainerForm({...trainerForm, name: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Email"
+                name="email"
+                type="email"
+                fullWidth
+                variant="outlined"
+                value={trainerForm.email}
+                onChange={(e) => setTrainerForm({...trainerForm, email: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Phone"
+                name="phone"
+                fullWidth
+                variant="outlined"
+                value={trainerForm.phone}
+                onChange={(e) => setTrainerForm({...trainerForm, phone: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Specialization"
+                name="specialization"
+                fullWidth
+                variant="outlined"
+                value={trainerForm.specialization}
+                onChange={(e) => setTrainerForm({...trainerForm, specialization: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Bio"
+                name="bio"
+                fullWidth
+                multiline
+                rows={3}
+                variant="outlined"
+                value={trainerForm.bio}
+                onChange={(e) => setTrainerForm({...trainerForm, bio: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <Typography variant="body2" color="textSecondary">
+                  Is this an external trainer?
+                </Typography>
+                <Select
+                  value={trainerForm.isExternal}
+                  onChange={(e) => setTrainerForm({...trainerForm, isExternal: e.target.value})}
+                  variant="outlined"
+                  sx={{ minWidth: 150 }}
+                >
+                  <MenuItem value={false}>No - Internal Staff</MenuItem>
+                  <MenuItem value={true}>Yes - External Trainer</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleSaveTrainer} color="primary" variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Add Program Dialog */}
+      <Dialog open={programDialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{currentProgram ? 'Edit Program' : 'Add New Training Program'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid item xs={12} sm={8}>
+              <TextField
+                label="Title"
+                name="title"
+                fullWidth
+                variant="outlined"
+                value={programForm.title}
+                onChange={(e) => setProgramForm({...programForm, title: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Category"
+                name="category"
+                fullWidth
+                variant="outlined"
+                value={programForm.category}
+                onChange={(e) => setProgramForm({...programForm, category: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                name="description"
+                fullWidth
+                multiline
+                rows={3}
+                variant="outlined"
+                value={programForm.description}
+                onChange={(e) => setProgramForm({...programForm, description: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Duration (e.g., 8 hours, 2 days)"
+                name="duration"
+                fullWidth
+                variant="outlined"
+                value={programForm.duration}
+                onChange={(e) => setProgramForm({...programForm, duration: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Skill Level</InputLabel>
+                <Select
+                  label="Skill Level"
+                  value={programForm.skillLevel}
+                  onChange={(e) => setProgramForm({...programForm, skillLevel: e.target.value})}
+                >
+                  <MenuItem value="beginner">Beginner</MenuItem>
+                  <MenuItem value="intermediate">Intermediate</MenuItem>
+                  <MenuItem value="advanced">Advanced</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Materials"
+                name="materials"
+                fullWidth
+                variant="outlined"
+                value={programForm.materials}
+                onChange={(e) => setProgramForm({...programForm, materials: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Prerequisites"
+                name="prerequisites"
+                fullWidth
+                variant="outlined"
+                value={programForm.prerequisites}
+                onChange={(e) => setProgramForm({...programForm, prerequisites: e.target.value})}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleSaveProgram} color="primary" variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Add Session Dialog */}
+      <Dialog open={sessionDialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle>{currentSession ? 'Edit Training Session' : 'Schedule New Training Session'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="Session Title"
+                name="title"
+                fullWidth
+                variant="outlined"
+                value={sessionForm.title}
+                onChange={(e) => setSessionForm({...sessionForm, title: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Training Program</InputLabel>
+                <Select
+                  label="Training Program"
+                  value={sessionForm.programId}
+                  onChange={(e) => setSessionForm({...sessionForm, programId: e.target.value})}
+                  required
+                >
+                  {trainingPrograms.map(program => (
+                    <MenuItem key={program.id} value={program.id}>{program.title}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Trainer</InputLabel>
+                <Select
+                  label="Trainer"
+                  value={sessionForm.trainerId}
+                  onChange={(e) => setSessionForm({...sessionForm, trainerId: e.target.value})}
+                  required
+                >
+                  {trainers.map(trainer => (
+                    <MenuItem key={trainer.id} value={trainer.id}>{trainer.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Start Date"
+                  value={sessionForm.startDate}
+                  onChange={(newDate) => setSessionForm({...sessionForm, startDate: newDate})}
+                  renderInput={(params) => <TextField {...params} fullWidth variant="outlined" required />}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="End Date"
+                  value={sessionForm.endDate}
+                  onChange={(newDate) => setSessionForm({...sessionForm, endDate: newDate})}
+                  renderInput={(params) => <TextField {...params} fullWidth variant="outlined" required />}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Location"
+                name="location"
+                fullWidth
+                variant="outlined"
+                value={sessionForm.location}
+                onChange={(e) => setSessionForm({...sessionForm, location: e.target.value})}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Max Participants"
+                name="maxParticipants"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={sessionForm.maxParticipants}
+                onChange={(e) => setSessionForm({...sessionForm, maxParticipants: parseInt(e.target.value)})}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  label="Status"
+                  value={sessionForm.status}
+                  onChange={(e) => setSessionForm({...sessionForm, status: e.target.value})}
+                >
+                  <MenuItem value="scheduled">Scheduled</MenuItem>
+                  <MenuItem value="in-progress">In Progress</MenuItem>
+                  <MenuItem value="completed">Completed</MenuItem>
+                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Autocomplete
+                multiple
+                options={employees}
+                getOptionLabel={(option) => `${option.firstName} ${option.lastName} (${option.id})`}
+                value={sessionParticipants}
+                onChange={(event, newValue) => setSessionParticipants(newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="outlined"
+                    label="Participants"
+                    placeholder="Select employees"
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Notes"
+                name="notes"
+                fullWidth
+                multiline
+                rows={3}
+                variant="outlined"
+                value={sessionForm.notes}
+                onChange={(e) => setSessionForm({...sessionForm, notes: e.target.value})}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleSaveSession} color="primary" variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
       
       {/* Training Programs Tab */}
       {activeTab === 1 && (
@@ -575,6 +1048,7 @@ const TrainingSessionsTab = ({
           variant="contained"
           color="primary"
           startIcon={<Add />}
+          onClick={() => handleAddSession()}
         >
           Schedule New Session
         </Button>
@@ -646,6 +1120,7 @@ const TrainingProgramsTab = ({ programs }) => {
           variant="contained"
           color="primary"
           startIcon={<Add />}
+          onClick={() => handleAddProgram()}
         >
           Add New Program
         </Button>
@@ -708,6 +1183,7 @@ const TrainersTab = ({ trainers }) => {
           variant="contained"
           color="primary"
           startIcon={<Add />}
+          onClick={() => handleAddTrainer()}
         >
           Add New Trainer
         </Button>
