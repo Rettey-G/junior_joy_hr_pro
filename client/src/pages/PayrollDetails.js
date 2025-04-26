@@ -122,14 +122,17 @@ const PayrollDetails = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Add mock salary data for display with dual currency
-        const employeesWithSalary = response.data.map(emp => {
-          // Generate USD values
-          const basicSalaryUSD = Math.floor(Math.random() * 5000) + 3000;
-          const allowancesUSD = Math.floor(Math.random() * 1000) + 500;
-          const deductionsUSD = Math.floor(Math.random() * 300) + 100;
-          const overtimeUSD = Math.floor(Math.random() * 20) * 25; // Overtime hours * hourly rate
-          const serviceChargeUSD = Math.floor(Math.random() * 200) + 50;
+        // Use fixed salary data for consistent display with dual currency
+        const employeesWithSalary = response.data.map((emp, index) => {
+          // Use simplified ID format instead of UUIDs
+          const empId = emp.id && emp.id.length > 10 ? `EMP-${100 + index}` : emp.id;
+          
+          // Generate fixed USD values to ensure consistency
+          const basicSalaryUSD = 3000 + (index * 300);
+          const allowancesUSD = 500 + (index * 50);
+          const deductionsUSD = 100 + (index * 10);
+          const overtimeUSD = (index % 5) * 25; // Overtime hours * hourly rate
+          const serviceChargeUSD = 100 + (index * 10);
           
           // Calculate MVR values based on exchange rate
           const basicSalaryMVR = Math.round(basicSalaryUSD * exchangeRate);
@@ -140,6 +143,7 @@ const PayrollDetails = () => {
           
           return {
             ...emp,
+            id: empId, // Use simpler ID format
             // USD amounts
             basicSalaryUSD,
             allowancesUSD,
@@ -158,9 +162,9 @@ const PayrollDetails = () => {
             deductions: deductionsUSD,
             overtime: Math.floor(Math.random() * 20),
             // Banking details
-            bankAccountUSD: `USD-XXXX-${Math.floor(Math.random() * 10000)}`,
-            bankAccountMVR: `MVR-XXXX-${Math.floor(Math.random() * 10000)}`,
-            bankAccount: `XX-XXXX-${Math.floor(Math.random() * 10000)}`
+            bankAccountUSD: `USD-XXXX-${100 + index}`,
+            bankAccountMVR: `MVR-XXXX-${100 + index}`,
+            bankAccount: `XX-XXXX-${100 + index}`
           };
         });
         
@@ -540,7 +544,11 @@ const PayrollDetails = () => {
                 value={selectedDepartment}
                 onChange={handleDepartmentFilter}
                 label="Department"
-                sx={{ borderRadius: 2 }}
+                sx={{ 
+                  borderRadius: 2,
+                  minWidth: '250px'
+                }}
+                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 }, }, }}}
               >
                 <MenuItem value="">All Departments</MenuItem>
                 {getDepartments().map(dept => (
@@ -558,6 +566,7 @@ const PayrollDetails = () => {
                 label="Employee"
                 sx={{ 
                   borderRadius: 2,
+                  minWidth: '250px',
                   '& .MuiSelect-select': {
                     padding: '14px 14px',
                     fontSize: '1rem',
@@ -566,14 +575,7 @@ const PayrollDetails = () => {
                     textOverflow: 'ellipsis'
                   }
                 }}
-                MenuProps={{
-                  PaperProps: {
-                    style: {
-                      maxHeight: 300,
-                      width: 350
-                    },
-                  },
-                }}
+                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 }, }, }}}
               >
                 <MenuItem value="">All Employees</MenuItem>
                 {employees.map(emp => (
@@ -1422,3 +1424,7 @@ const PayrollDetails = () => {
 };
 
 export default PayrollDetails;
+
+
+
+
