@@ -936,7 +936,7 @@ const Dashboard = () => {
           </Paper>
           
           {/* Analytics Dashboard */}
-          <AnalyticsDashboard allEmployeeData={allEmployeeData} />
+          <AnalyticsDashboard />
 
           {/* Stats Cards */}
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50', mt: 4 }}>
