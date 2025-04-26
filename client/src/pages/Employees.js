@@ -25,12 +25,25 @@ import {
   Grid,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
+  Stack
 } from '@mui/material';
 import { Add, Edit, Delete, FilterList } from '@mui/icons-material';
 import { format } from 'date-fns';
 
 const Employees = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   // States
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -270,13 +283,31 @@ const Employees = () => {
   const workSites = ['Office', 'Express 1', 'Express 3'];
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" component="h2" gutterBottom>
+    <Box sx={{ px: isMobile ? 1 : 3, mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
+      <Paper elevation={3} sx={{ p: isMobile ? 2 : 3 }}>
+        <Box 
+          display="flex" 
+          flexDirection={isMobile ? 'column' : 'row'}
+          justifyContent={isMobile ? 'center' : 'space-between'} 
+          alignItems={isMobile ? 'stretch' : 'center'} 
+          mb={isMobile ? 2 : 3}
+          gap={isMobile ? 2 : 0}
+        >
+          <Typography 
+            variant={isMobile ? "h6" : "h5"} 
+            component="h2" 
+            gutterBottom={!isMobile}
+            align={isMobile ? "center" : "left"}
+          >
             Employee Management
           </Typography>
-          <Box>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: isMobile ? 'space-between' : 'flex-end',
+              width: isMobile ? '100%' : 'auto'
+            }}
+          >
             <IconButton onClick={toggleFilters} color="primary" sx={{ mr: 1 }}>
               <FilterList />
             </IconButton>
@@ -284,10 +315,13 @@ const Employees = () => {
               <Button 
                 variant="contained" 
                 color="primary" 
-                startIcon={<Add />}
+                startIcon={!isMobile && <Add />}
+                size={isMobile ? "small" : "medium"}
                 onClick={() => handleOpenDialog()}
+                fullWidth={isMobile}
+                sx={{ ml: isMobile ? 0 : 1 }}
               >
-                Add Employee
+                {isMobile ? <Add /> : "Add Employee"}
               </Button>
             )}
           </Box>
@@ -295,11 +329,30 @@ const Employees = () => {
 
         {/* Filters */}
         {filterOpen && (
-          <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>Filters</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth size="small">
+          <Paper elevation={2} sx={{ p: isMobile ? 1.5 : 2, mb: isMobile ? 2 : 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              mb: 1
+            }}>
+              <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom={!isMobile}>
+                Filters
+              </Typography>
+              {filters.department || filters.workSite ? (
+                <Chip 
+                  label="Clear All" 
+                  size="small" 
+                  color="primary" 
+                  variant="outlined"
+                  onClick={resetFilters} 
+                />
+              ) : null}
+            </Box>
+            
+            <Grid container spacing={isMobile ? 1 : 2}>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
                   <InputLabel>Department</InputLabel>
                   <Select
                     name="department"
@@ -314,8 +367,8 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth size="small">
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
                   <InputLabel>Work Site</InputLabel>
                   <Select
                     name="workSite"
@@ -330,85 +383,192 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={resetFilters}
-                  size="small"
-                >
-                  Reset Filters
-                </Button>
-              </Grid>
+              {!isMobile && (
+                <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Button 
+                    variant="outlined" 
+                    onClick={resetFilters}
+                    size="small"
+                  >
+                    Reset Filters
+                  </Button>
+                </Grid>
+              )}
             </Grid>
+            
+            {/* Applied filters */}
+            {(filters.department || filters.workSite) && (
+              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {filters.department && (
+                  <Chip 
+                    label={`Department: ${filters.department}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange({ target: { name: 'department', value: '' } })} 
+                  />
+                )}
+                {filters.workSite && (
+                  <Chip 
+                    label={`Work Site: ${filters.workSite}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange({ target: { name: 'workSite', value: '' } })} 
+                  />
+                )}
+              </Box>
+            )}
           </Paper>
         )}
 
-        {/* Employees Table */}
+        {/* Active Filters Indication */}
+        {!filterOpen && (filters.department || filters.workSite) && (
+          <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            <Typography variant="caption" sx={{ mr: 1, alignSelf: 'center' }}>
+              Active filters:
+            </Typography>
+            {filters.department && (
+              <Chip 
+                label={`${filters.department}`} 
+                size="small" 
+                color="primary"
+                variant="outlined"
+                onDelete={() => handleFilterChange({ target: { name: 'department', value: '' } })} 
+              />
+            )}
+            {filters.workSite && (
+              <Chip 
+                label={`${filters.workSite}`} 
+                size="small" 
+                color="secondary"
+                variant="outlined"
+                onDelete={() => handleFilterChange({ target: { name: 'workSite', value: '' } })} 
+              />
+            )}
+          </Box>
+        )}
+        
+        {/* Employees Table or Cards */}
         {loading ? (
           <Box display="flex" justifyContent="center" my={4}>
             <CircularProgress />
           </Box>
         ) : error ? (
           <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
+        ) : employees.length === 0 ? (
+          <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="textSecondary">No employees found</Typography>
+          </Paper>
+        ) : isMobile ? (
+          // Mobile Card View
+          <Stack spacing={2}>
+            {employees.map((employee) => (
+              <Card key={employee._id} elevation={2}>
+                <CardContent sx={{ pb: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">{employee.name}</Typography>
+                    <Chip size="small" label={employee.empNo} color="primary" variant="outlined" />
+                  </Box>
+                  <Divider sx={{ mb: 1.5 }} />
+                  
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">ID Number</Typography>
+                      <Typography variant="body2">{employee.idNumber}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Designation</Typography>
+                      <Typography variant="body2" noWrap>{employee.designation}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Department</Typography>
+                      <Typography variant="body2" noWrap>{employee.department}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Work Site</Typography>
+                      <Typography variant="body2">{employee.workSite}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Salary (USD)</Typography>
+                      <Typography variant="body2">${employee.salaryUSD || 0}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Salary (MVR)</Typography>
+                      <Typography variant="body2">{employee.salaryMVR || 0} MVR</Typography>
+                    </Grid>
+                  </Grid>
+                  
+                  {isAdmin && (
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                      <IconButton 
+                        size="small" 
+                        color="primary"
+                        onClick={() => handleOpenDialog(employee)}
+                      >
+                        <Edit fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        color="error"
+                        onClick={() => handleDeleteEmployee(employee._id)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
         ) : (
+          // Desktop Table View
           <TableContainer component={Paper} variant="outlined">
-            <Table sx={{ minWidth: 650 }} size="small">
+            <Table sx={{ minWidth: 650 }} size={isTablet ? "small" : "medium"}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                   <TableCell>EMP NO</TableCell>
                   <TableCell>Employee Name</TableCell>
                   <TableCell>ID Number</TableCell>
-                  <TableCell>Gender</TableCell>
+                  {!isTablet && <TableCell>Gender</TableCell>}
                   <TableCell>Designation</TableCell>
                   <TableCell>Department</TableCell>
                   <TableCell>Work Site</TableCell>
                   <TableCell>Salary (USD)</TableCell>
-                  <TableCell>Salary (MVR)</TableCell>
-                  <TableCell>Joined Date</TableCell>
+                  {!isTablet && <TableCell>Salary (MVR)</TableCell>}
+                  {!isTablet && <TableCell>Joined Date</TableCell>}
                   {isAdmin && <TableCell align="center">Actions</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={isAdmin ? 9 : 8} align="center">
-                      No employees found
-                    </TableCell>
+                {employees.map((employee) => (
+                  <TableRow key={employee._id} hover>
+                    <TableCell>{employee.empNo}</TableCell>
+                    <TableCell>{employee.name}</TableCell>
+                    <TableCell>{employee.idNumber}</TableCell>
+                    {!isTablet && <TableCell>{employee.gender}</TableCell>}
+                    <TableCell>{employee.designation}</TableCell>
+                    <TableCell>{employee.department}</TableCell>
+                    <TableCell>{employee.workSite}</TableCell>
+                    <TableCell>${employee.salaryUSD || 0}</TableCell>
+                    {!isTablet && <TableCell>{employee.salaryMVR || 0} MVR</TableCell>}
+                    {!isTablet && <TableCell>{formatDate(employee.joinedDate)}</TableCell>}
+                    {isAdmin && (
+                      <TableCell align="center">
+                        <IconButton 
+                          size="small" 
+                          color="primary"
+                          onClick={() => handleOpenDialog(employee)}
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDeleteEmployee(employee._id)}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    )}
                   </TableRow>
-                ) : (
-                  employees.map((employee) => (
-                    <TableRow key={employee._id}>
-                      <TableCell>{employee.empNo}</TableCell>
-                      <TableCell>{employee.name}</TableCell>
-                      <TableCell>{employee.idNumber}</TableCell>
-                      <TableCell>{employee.gender}</TableCell>
-                      <TableCell>{employee.designation}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
-                      <TableCell>{employee.workSite}</TableCell>
-                      <TableCell>${employee.salaryUSD || 0}</TableCell>
-                      <TableCell>{employee.salaryMVR || 0} MVR</TableCell>
-                      <TableCell>{formatDate(employee.joinedDate)}</TableCell>
-                      {isAdmin && (
-                        <TableCell align="center">
-                          <IconButton 
-                            size="small" 
-                            color="primary"
-                            onClick={() => handleOpenDialog(employee)}
-                          >
-                            <Edit fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteEmployee(employee._id)}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -416,11 +576,17 @@ const Employees = () => {
       </Paper>
 
       {/* Add/Edit Employee Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ px: isMobile ? 2 : 3, py: isMobile ? 1.5 : 2 }}>
           {currentEmployee ? 'Edit Employee' : 'Add New Employee'}
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ px: isMobile ? 2 : 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
@@ -616,17 +782,26 @@ const Employees = () => {
       </Dialog>
 
       {/* Snackbar for notifications */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{
+          vertical: isMobile ? 'top' : 'bottom',
+          horizontal: isMobile ? 'center' : 'right'
+        }}
+        sx={{ width: isMobile ? '90%' : 'auto' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

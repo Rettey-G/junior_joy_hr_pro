@@ -17,7 +17,9 @@ import {
   ListItemIcon,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { 
   PeopleOutline, 
@@ -42,6 +44,10 @@ const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Dashboard = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -416,77 +422,77 @@ const Dashboard = () => {
   // Display loading state
   if (loading) {
     return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>Loading dashboard data...</Typography>
-      </Container>
+        <Typography variant={isMobile ? "body1" : "h6"} sx={{ ml: 2 }}>Loading dashboard data...</Typography>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
       {error && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
+        <Alert severity="warning" sx={{ mb: 2, mx: isMobile ? 0 : 2 }}>
           {error}
         </Alert>
       )}
       
-      <Typography variant="h4" gutterBottom>
+      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom sx={{ px: isMobile ? 1 : 0 }}>
         HR Dashboard
       </Typography>
       
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3}>
-            <CardContent>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+        <Grid item xs={6} sm={6} md={3}>
+          <Card elevation={3} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box display="flex" alignItems="center">
-                <PeopleOutline fontSize="large" color="primary" />
-                <Box ml={2}>
-                  <Typography variant="h4">{stats.totalEmployees}</Typography>
-                  <Typography variant="body2" color="textSecondary">Total Employees</Typography>
+                <PeopleOutline fontSize={isMobile ? "medium" : "large"} color="primary" />
+                <Box ml={isMobile ? 1 : 2}>
+                  <Typography variant={isMobile ? "h5" : "h4"}>{stats.totalEmployees}</Typography>
+                  <Typography variant="body2" color="textSecondary" noWrap={isMobile}>Total Employees</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3}>
-            <CardContent>
+        <Grid item xs={6} sm={6} md={3}>
+          <Card elevation={3} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box display="flex" alignItems="center">
-                <TrendingUp fontSize="large" color="secondary" />
-                <Box ml={2}>
-                  <Typography variant="h4">{stats.newHires}</Typography>
-                  <Typography variant="body2" color="textSecondary">New Hires (30d)</Typography>
+                <TrendingUp fontSize={isMobile ? "medium" : "large"} color="secondary" />
+                <Box ml={isMobile ? 1 : 2}>
+                  <Typography variant={isMobile ? "h5" : "h4"}>{stats.newHires}</Typography>
+                  <Typography variant="body2" color="textSecondary" noWrap={isMobile}>New Hires (30d)</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3}>
-            <CardContent>
+        <Grid item xs={6} sm={6} md={3}>
+          <Card elevation={3} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box display="flex" alignItems="center">
-                <AttachMoney fontSize="large" style={{ color: '#4caf50' }} />
-                <Box ml={2}>
-                  <Typography variant="h4">${(stats.averageSalary/1000).toFixed(0)}k</Typography>
-                  <Typography variant="body2" color="textSecondary">Avg. Salary</Typography>
+                <AttachMoney fontSize={isMobile ? "medium" : "large"} style={{ color: '#4caf50' }} />
+                <Box ml={isMobile ? 1 : 2}>
+                  <Typography variant={isMobile ? "h5" : "h4"}>${(stats.averageSalary/1000).toFixed(0)}k</Typography>
+                  <Typography variant="body2" color="textSecondary" noWrap={isMobile}>Avg. Salary</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
-          <Card elevation={3}>
-            <CardContent>
+        <Grid item xs={6} sm={6} md={3}>
+          <Card elevation={3} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
               <Box display="flex" alignItems="center">
-                <Business fontSize="large" style={{ color: '#ff9800' }} />
-                <Box ml={2}>
-                  <Typography variant="h4">{stats.departments}</Typography>
-                  <Typography variant="body2" color="textSecondary">Departments</Typography>
+                <Business fontSize={isMobile ? "medium" : "large"} style={{ color: '#ff9800' }} />
+                <Box ml={isMobile ? 1 : 2}>
+                  <Typography variant={isMobile ? "h5" : "h4"}>{stats.departments}</Typography>
+                  <Typography variant="body2" color="textSecondary" noWrap={isMobile}>Departments</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -495,83 +501,151 @@ const Dashboard = () => {
       </Grid>
       
       {/* Distribution Charts */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               <Box display="flex" alignItems="center">
                 <Business fontSize="small" sx={{ mr: 1 }} />
                 Department Distribution
               </Box>
             </Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Pie data={departmentData} />
+            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">
+              <Pie 
+                data={departmentData} 
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                    }
+                  }
+                }}
+              />
             </Box>
           </Paper>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               <Box display="flex" alignItems="center">
                 <Public fontSize="small" sx={{ mr: 1 }} />
                 Nationality Distribution
               </Box>
             </Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Pie data={nationalityData} />
+            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">
+              <Pie 
+                data={nationalityData} 
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                    }
+                  }
+                }}
+              />
             </Box>
           </Paper>
         </Grid>
       </Grid>
       
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               <Box display="flex" alignItems="center">
                 <Wc fontSize="small" sx={{ mr: 1 }} />
                 Gender Distribution
               </Box>
             </Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Pie data={genderData} />
+            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">
+              <Pie 
+                data={genderData} 
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                    }
+                  }
+                }}
+              />
             </Box>
           </Paper>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               <Box display="flex" alignItems="center">
                 <TransferWithinAStation fontSize="small" sx={{ mr: 1 }} />
                 Worksite Distribution
               </Box>
             </Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Pie data={worksiteData} />
+            <Box height={isMobile ? 220 : 300} display="flex" alignItems="center" justifyContent="center">
+              <Pie 
+                data={worksiteData} 
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 12 } }
+                    }
+                  }
+                }}
+              />
             </Box>
           </Paper>
         </Grid>
       </Grid>
       
       {/* Turnover Chart */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
         <Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>Turnover by Worksite (%)</Typography>
-            <Box height={300} display="flex" alignItems="center" justifyContent="center">
-              <Line 
+          <Paper elevation={3} sx={{ p: isMobile ? 2 : 3 }}>
+            <Typography variant="h6" gutterBottom>
+              <Box display="flex" alignItems="center">
+                <TrendingUp fontSize="small" sx={{ mr: 1 }} />
+                Turnover Rate by Worksite
+              </Box>
+            </Typography>
+            <Box height={isMobile ? 240 : 300} display="flex" alignItems="center" justifyContent="center">
+              <Bar 
                 data={turnoverData} 
                 options={{
+                  maintainAspectRatio: false,
                   responsive: true,
                   scales: {
                     y: {
                       beginAtZero: true,
                       title: {
-                        display: true,
-                        text: 'Turnover Rate (%)'
+                        display: !isMobile,
+                        text: 'Rate (%)'
+                      },
+                      ticks: {
+                        font: { size: isMobile ? 10 : 12 }
                       }
+                    },
+                    x: {
+                      ticks: {
+                        font: { size: isMobile ? 10 : 12 }
+                      }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      display: !isMobile,
+                      position: 'top'
                     }
                   }
                 }}
@@ -582,20 +656,31 @@ const Dashboard = () => {
       </Grid>
       
       {/* Activity and Events */}
-      <Grid container spacing={3}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={3}>
-            <CardHeader title="Recent Activities" />
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <CardHeader 
+              title="Recent Activities" 
+              titleTypographyProps={{ variant: isMobile ? 'subtitle1' : 'h6' }} 
+              sx={{ p: isMobile ? 1.5 : 2 }}
+            />
             <Divider />
-            <List>
+            <List dense={isMobile}>
               {recentActivities.map((activity) => (
                 <ListItem key={activity.id}>
                   <ListItemIcon>
-                    <CheckCircle color="primary" />
+                    <Notifications color="primary" fontSize={isMobile ? "small" : "medium"} />
                   </ListItemIcon>
                   <ListItemText 
                     primary={activity.text} 
                     secondary={activity.date} 
+                    primaryTypographyProps={{ 
+                      variant: isMobile ? 'body2' : 'body1',
+                      noWrap: isMobile
+                    }}
+                    secondaryTypographyProps={{ 
+                      variant: isMobile ? 'caption' : 'body2' 
+                    }}
                   />
                 </ListItem>
               ))}
@@ -604,18 +689,29 @@ const Dashboard = () => {
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Paper elevation={3}>
-            <CardHeader title="Upcoming Events" />
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <CardHeader 
+              title="Upcoming Events" 
+              titleTypographyProps={{ variant: isMobile ? 'subtitle1' : 'h6' }} 
+              sx={{ p: isMobile ? 1.5 : 2 }}
+            />
             <Divider />
-            <List>
+            <List dense={isMobile}>
               {upcomingEvents.map((event) => (
                 <ListItem key={event.id}>
                   <ListItemIcon>
-                    <Event color="secondary" />
+                    <Event color="secondary" fontSize={isMobile ? "small" : "medium"} />
                   </ListItemIcon>
                   <ListItemText 
                     primary={event.text} 
                     secondary={event.date} 
+                    primaryTypographyProps={{ 
+                      variant: isMobile ? 'body2' : 'body1',
+                      noWrap: isMobile
+                    }}
+                    secondaryTypographyProps={{ 
+                      variant: isMobile ? 'caption' : 'body2' 
+                    }}
                   />
                 </ListItem>
               ))}
@@ -629,13 +725,24 @@ const Dashboard = () => {
         open={!!notification} 
         autoHideDuration={6000} 
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ 
+          vertical: isMobile ? 'top' : 'bottom', 
+          horizontal: isMobile ? 'center' : 'right' 
+        }}
+        sx={{
+          width: isMobile ? '90%' : 'auto'
+        }}
       >
-        <Alert onClose={handleCloseNotification} severity="info">
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity="info" 
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
           {notification}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

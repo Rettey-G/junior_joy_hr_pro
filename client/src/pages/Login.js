@@ -8,7 +8,12 @@ import {
   Button, 
   Paper,
   Alert,
-  CircularProgress
+  CircularProgress,
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+  Divider
 } from '@mui/material';
 import api from '../services/api';
 
@@ -62,20 +67,57 @@ const Login = () => {
     }
   };
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h4" color="primary" gutterBottom>
-          Junior Joy HR Pro
-        </Typography>
-        <Typography component="h2" variant="h6" color="textSecondary" gutterBottom>
-          Happy Teams, Smarter HR
-        </Typography>
+    <Container maxWidth="sm" sx={{ px: isMobile ? 2 : 3 }}>
+      <Box sx={{ 
+        mt: isMobile ? 4 : 8, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        <Box sx={{ 
+          textAlign: 'center', 
+          mb: 3, 
+          mt: isMobile ? 2 : 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <Typography 
+            component="h1" 
+            variant={isMobile ? "h5" : "h4"} 
+            color="primary" 
+            gutterBottom
+          >
+            Junior Joy HR Pro
+          </Typography>
+          <Typography 
+            component="h2" 
+            variant={isMobile ? "subtitle1" : "h6"} 
+            color="textSecondary" 
+            gutterBottom
+          >
+            Happy Teams, Smarter HR
+          </Typography>
+        </Box>
         
-        <Paper elevation={3} sx={{ p: 4, width: '100%', mt: 3 }}>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+        <Card 
+          elevation={3} 
+          sx={{ 
+            width: '100%', 
+            borderRadius: 2, 
+            overflow: 'hidden',
+            boxShadow: 3
+          }}
+        >
+          <CardContent sx={{ p: isMobile ? 2 : 4 }}>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            
+            <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
               margin="normal"
               required
@@ -106,28 +148,68 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              size={isMobile ? "large" : "medium"}
+              sx={{
+                mt: 3,
+                mb: 2,
+                py: isMobile ? 1.5 : 1,
+                fontSize: isMobile ? '1rem' : 'inherit',
+                boxShadow: 2
+              }}
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
             
+            <Divider sx={{ my: 3 }} />
+            
             <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="textSecondary" align="center" gutterBottom>
+              <Typography variant="body2" color="textSecondary" align="center" gutterBottom fontWeight="bold">
                 Demo credentials:
               </Typography>
-              <Typography variant="body2" color="textSecondary" align="center">
-                Admin: user / password
-              </Typography>
-              <Typography variant="body2" color="textSecondary" align="center">
-                HR: hr / password
-              </Typography>
-              <Typography variant="body2" color="textSecondary" align="center">
-                Employee: employee / password
-              </Typography>
+              
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'center',
+                gap: 2,
+                mt: 1 
+              }}>
+                <Box sx={{ textAlign: 'center', px: 1 }}>
+                  <Typography variant="caption" color="primary" display="block">
+                    Admin
+                  </Typography>
+                  <Typography variant="body2">
+                    user / password
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ textAlign: 'center', px: 1 }}>
+                  <Typography variant="caption" color="primary" display="block">
+                    HR
+                  </Typography>
+                  <Typography variant="body2">
+                    hr / password
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ textAlign: 'center', px: 1 }}>
+                  <Typography variant="caption" color="primary" display="block">
+                    Employee
+                  </Typography>
+                  <Typography variant="body2">
+                    employee / password
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </Box>
-        </Paper>
+        </CardContent>
+        </Card>
+        
+        <Typography variant="caption" color="textSecondary" sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
+          &copy; {new Date().getFullYear()} Junior Joy HR Pro. All rights reserved.
+        </Typography>
       </Box>
     </Container>
   );

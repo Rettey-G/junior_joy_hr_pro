@@ -118,7 +118,7 @@ const Payroll = () => {
         setError('Failed to load payroll data. Using demo data.');
         
         // Use demo data if API fails
-        useDemoData();
+        generateDemoData();
         setLoading(false);
       }
     };
@@ -199,7 +199,7 @@ const Payroll = () => {
   };
   
   // Use demo data if API fails
-  const useDemoData = () => {
+  const generateDemoData = () => {
     // Set mock pay periods
     setPayPeriods(mockPayPeriods);
     setCurrentPayPeriod(mockPayPeriods[0].id);
