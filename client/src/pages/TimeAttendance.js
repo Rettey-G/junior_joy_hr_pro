@@ -83,8 +83,21 @@ const TimeAttendance = () => {
 
   // Mock data for attendance records (would be replaced with API calls)
   const generateMockAttendanceData = useCallback(() => {
+    // Check if employees array is empty
+    if (!employees || employees.length === 0) {
+      return [];
+    }
+    
+    // Generate data only once with stable results
     const records = [];
     const today = new Date();
+    const seed = 12345; // Fixed seed for random number generation
+    
+    // Simple deterministic random function
+    const seededRandom = (max, min = 0) => {
+      const x = Math.sin(seed + records.length) * 10000;
+      return min + (Math.abs(x - Math.floor(x)) * (max - min));
+    };
     
     // Generate attendance records for the last 30 days
     for (let i = 0; i < 30; i++) {
@@ -97,8 +110,8 @@ const TimeAttendance = () => {
           records.push({
             id: `${employee.id}-${format(date, 'yyyy-MM-dd')}`,
             employeeId: employee.id,
-            employeeName: employee.name,
-            department: employee.department,
+            employeeName: employee.name || 'Employee',
+            department: employee.department || 'Department',
             date: format(date, 'yyyy-MM-dd'),
             checkIn: null,
             checkOut: null,
@@ -110,9 +123,10 @@ const TimeAttendance = () => {
           return;
         }
         
-        // Randomly assign statuses for demo
+        // Deterministically assign statuses
         const statuses = ['present', 'present', 'present', 'present', 'late', 'absent', 'leave'];
-        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+        const randomIndex = Math.floor(seededRandom(statuses.length));
+        const randomStatus = statuses[randomIndex];
         
         let checkIn = null;
         let checkOut = null;
@@ -123,12 +137,12 @@ const TimeAttendance = () => {
         // For present and late statuses, generate check-in/out times
         if (randomStatus === 'present' || randomStatus === 'late') {
           // Standard working hours: 9 AM to 5 PM
-          const baseCheckIn = randomStatus === 'present' ? 9 : 9 + (Math.random() * 2);
-          checkIn = `${Math.floor(baseCheckIn)}:${Math.random() > 0.5 ? '30' : '00'}`;
+          const baseCheckIn = randomStatus === 'present' ? 9 : 9 + (seededRandom(2));
+          checkIn = `${Math.floor(baseCheckIn)}:${seededRandom(1) > 0.5 ? '30' : '00'}`;
           
-          // Random check-out between 5 PM and 7 PM
-          const baseCheckOut = 17 + (Math.random() * 2);
-          checkOut = `${Math.floor(baseCheckOut)}:${Math.random() > 0.5 ? '30' : '00'}`;
+          // Check-out between 5 PM and 7 PM
+          const baseCheckOut = 17 + (seededRandom(2));
+          checkOut = `${Math.floor(baseCheckOut)}:${seededRandom(1) > 0.5 ? '30' : '00'}`;
           
           // Calculate hours worked and overtime
           hoursWorked = parseFloat((baseCheckOut - baseCheckIn).toFixed(1));
@@ -136,9 +150,9 @@ const TimeAttendance = () => {
           
           notes = randomStatus === 'late' ? 'Employee arrived late' : '';
         } else if (randomStatus === 'leave') {
-          // Randomly assign leave types
+          // Assign leave types
           const leaveTypes = ['Annual Leave', 'Sick Leave', 'Emergency Leave', 'Family Care'];
-          notes = leaveTypes[Math.floor(Math.random() * leaveTypes.length)];
+          notes = leaveTypes[Math.floor(seededRandom(leaveTypes.length))];
         } else if (randomStatus === 'absent') {
           notes = 'Unexcused absence';
         }
@@ -146,8 +160,8 @@ const TimeAttendance = () => {
         records.push({
           id: `${employee.id}-${format(date, 'yyyy-MM-dd')}`,
           employeeId: employee.id,
-          employeeName: employee.name,
-          department: employee.department,
+          employeeName: employee.name || 'Employee',
+          department: employee.department || 'Department',
           date: format(date, 'yyyy-MM-dd'),
           checkIn: checkIn,
           checkOut: checkOut,
@@ -160,10 +174,12 @@ const TimeAttendance = () => {
     }
     
     return records;
-  }, [employees]);
+  }, []); // No dependencies to prevent regeneration
 
-  // Fetch employee data
+  // Fetch employee data - run only once
   useEffect(() => {
+    let isMounted = true; // Flag to prevent state updates after unmount
+    
     const fetchEmployees = async () => {
       setLoading(true);
       try {
@@ -171,23 +187,32 @@ const TimeAttendance = () => {
         const response = await api.get('/api/employees', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setEmployees(response.data);
         
-        // Generate mock attendance data based on employees
-        setTimeout(() => {
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setEmployees(response.data);
+          
+          // Generate attendance data immediately, no timeout needed
           const mockData = generateMockAttendanceData();
           setAttendanceRecords(mockData);
           setLoading(false);
-        }, 1000);
+        }
       } catch (err) {
-        setError('Failed to fetch employee data');
-        console.error(err);
-        setLoading(false);
+        if (isMounted) {
+          setError('Failed to fetch employee data');
+          console.error(err);
+          setLoading(false);
+        }
       }
     };
     
     fetchEmployees();
-  }, [generateMockAttendanceData]); // Add the dependency
+    
+    // Cleanup function to prevent memory leaks and state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - load once on mount
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {

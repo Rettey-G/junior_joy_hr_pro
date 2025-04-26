@@ -389,31 +389,124 @@ const LeavePlan = () => {
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>Leave Management</Typography>
         <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          Manage leave requests, balances, and holiday schedules
+          Manage leave requests and view leave balances
         </Typography>
         
-        {/* Action buttons for Leave Balance and Public Holidays */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Button 
-            variant="outlined" 
-            startIcon={<CalendarMonth />}
-            onClick={() => handlePublicHolidayDialogOpen()}
-          >
-            View Public Holidays
-          </Button>
-          <Button 
-            variant="outlined" 
-            startIcon={<Person />}
-            onClick={() => {
-              if (employees.length > 0) {
-                handleLeaveBalanceDialogOpen(employees[0].id);
-              }
-            }}
-            disabled={loading || employees.length === 0}
-          >
-            View Leave Balance
-          </Button>
-        </Box>
+        {/* Employee selection and leave balance */}
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Select Employee</InputLabel>
+                <Select
+                  value={selectedEmployee}
+                  label="Select Employee"
+                  onChange={(e) => {
+                    setSelectedEmployee(e.target.value);
+                    if (e.target.value) {
+                      // Calculate and show leave balances for selected employee
+                      const employee = employees.find(emp => emp.id === e.target.value);
+                      if (employee) {
+                        // Calculate balances
+                        const balances = {};
+                        leaveTypes.forEach(type => {
+                          const entitlement = calculateLeaveBalance(employee, type.value);
+                          const usedLeaves = leaveRecords
+                            .filter(leave => leave.employeeId === employee.id && leave.leaveType === type.value)
+                            .reduce((total, leave) => total + leave.days, 0);
+                          balances[type.value] = {
+                            entitlement,
+                            used: usedLeaves,
+                            remaining: entitlement - usedLeaves
+                          };
+                        });
+                        setLeaveBalances(balances);
+                      }
+                    }
+                  }}
+                  disabled={loading || employees.length === 0}
+                >
+                  <MenuItem value="">Select Employee</MenuItem>
+                  {employees.map(employee => (
+                    <MenuItem key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} md={6} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', alignItems: 'center' }}>
+              <Button 
+                variant="outlined" 
+                startIcon={<CalendarMonth />}
+                onClick={() => handlePublicHolidayDialogOpen()}
+              >
+                Public Holidays
+              </Button>
+              
+              <Button 
+                variant="contained" 
+                color="primary"
+                startIcon={<Add />}
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    employeeId: selectedEmployee
+                  });
+                  setDialogOpen(true);
+                }}
+                disabled={!selectedEmployee}
+              >
+                Apply for Leave
+              </Button>
+            </Grid>
+          </Grid>
+          
+          {/* Leave balance display */}
+          {selectedEmployee && Object.keys(leaveBalances).length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Leave Balance for {employees.find(emp => emp.id === selectedEmployee)?.name}
+              </Typography>
+              
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                {leaveTypes.map(type => {
+                  const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, remaining: 0 };
+                  return (
+                    <Grid item xs={6} sm={4} md={3} key={type.value}>
+                      <Paper 
+                        elevation={1} 
+                        sx={{ 
+                          p: 2, 
+                          textAlign: 'center',
+                          bgcolor: balance.remaining <= 0 ? 'error.light' : 
+                                  balance.remaining < 5 ? 'warning.light' : 'success.light',
+                          color: balance.remaining <= 0 ? 'error.contrastText' : 
+                                 balance.remaining < 5 ? 'warning.contrastText' : 'success.contrastText',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {type.label}
+                        </Typography>
+                        <Typography variant="h4">
+                          {balance.remaining}
+                        </Typography>
+                        <Typography variant="body2">
+                          {balance.used} used / {balance.entitlement} total
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+          )}
+        </Paper>
         
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>

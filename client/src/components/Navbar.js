@@ -61,12 +61,13 @@ const Navbar = () => {
           Junior Joy HR Pro
         </Typography>
         
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
           <Button 
             color="inherit" 
             component={Link} 
             to="/"
             startIcon={<DashboardIcon />}
+            size="small"
           >
             Dashboard
           </Button>
@@ -76,85 +77,70 @@ const Navbar = () => {
             component={Link}
             to="/employees"
             startIcon={<PeopleIcon />}
+            size="small"
           >
             Employees
           </Button>
           
-          {/* Payroll Dropdown */}
           <Button 
-            color="inherit"
+            color="inherit" 
+            component={Link}
+            to="/payroll"
             startIcon={<AttachMoneyIcon />}
-            endIcon={<ExpandMoreIcon />}
-            onClick={handlePayrollMenuOpen}
-            aria-controls="payroll-menu"
-            aria-haspopup="true"
+            size="small"
           >
             Payroll
           </Button>
-          <Menu
-            id="payroll-menu"
-            anchorEl={payrollAnchorEl}
-            keepMounted
-            open={Boolean(payrollAnchorEl)}
-            onClose={handlePayrollMenuClose}
-          >
-            <MenuItem onClick={() => handleMenuNavigation('/payroll')}>
-              <ListItemIcon>
-                <AttachMoneyIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Payroll Overview</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuNavigation('/payroll-details')}>
-              <ListItemIcon>
-                <ReceiptIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Payroll Details</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuNavigation('/leave-plan')}>
-              <ListItemIcon>
-                <EventNoteIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Leave Plan</ListItemText>
-            </MenuItem>
-          </Menu>
           
-          {/* Organization Dropdown */}
           <Button 
-            color="inherit"
-            startIcon={<AccountTreeIcon />}
-            endIcon={<ExpandMoreIcon />}
-            onClick={handleOrgMenuOpen}
-            aria-controls="org-menu"
-            aria-haspopup="true"
+            color="inherit" 
+            component={Link}
+            to="/payroll-details"
+            startIcon={<ReceiptIcon />}
+            size="small"
           >
-            Organization
+            Payroll Details
           </Button>
-          <Menu
-            id="org-menu"
-            anchorEl={orgAnchorEl}
-            keepMounted
-            open={Boolean(orgAnchorEl)}
-            onClose={handleOrgMenuClose}
+          
+          <Button 
+            color="inherit" 
+            component={Link}
+            to="/leave-plan"
+            startIcon={<EventNoteIcon />}
+            size="small"
           >
-            <MenuItem onClick={() => handleMenuNavigation('/org-chart')}>
-              <ListItemIcon>
-                <AccountTreeIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Organization Chart</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuNavigation('/reports')}>
-              <ListItemIcon>
-                <AssessmentIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Reports</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => handleMenuNavigation('/time-attendance')}>
-              <ListItemIcon>
-                <AccessTimeIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Time & Attendance</ListItemText>
-            </MenuItem>
-          </Menu>
+            Leave
+          </Button>
+          
+          <Button 
+            color="inherit" 
+            component={Link}
+            to="/org-chart"
+            startIcon={<AccountTreeIcon />}
+            size="small"
+          >
+            Org Chart
+          </Button>
+          
+          <Button 
+            color="inherit" 
+            component={Link}
+            to="/reports"
+            startIcon={<AssessmentIcon />}
+            size="small"
+          >
+            Reports
+          </Button>
+          
+          <Button 
+            color="inherit" 
+            component={Link}
+            to="/time-attendance"
+            startIcon={<AccessTimeIcon />}
+            size="small"
+          >
+            Time & Attendance
+          </Button>
           
           {isAdmin && (
             <Button 
