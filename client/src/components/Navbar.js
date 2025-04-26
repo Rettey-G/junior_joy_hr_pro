@@ -20,6 +20,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -146,6 +147,12 @@ const Navbar = () => {
                 <AssessmentIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText>Reports</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuNavigation('/time-attendance')}>
+              <ListItemIcon>
+                <AccessTimeIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Time & Attendance</ListItemText>
             </MenuItem>
           </Menu>
           

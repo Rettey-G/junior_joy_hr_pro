@@ -12,13 +12,15 @@ import { Add, CalendarMonth } from '@mui/icons-material';
 import { format } from 'date-fns';
 import api from '../services/api';
 
+// Leave types with entitlements and rules
 const leaveTypes = [
-  { value: 'annual', label: 'Annual Leave' },
-  { value: 'sick', label: 'Sick Leave' },
-  { value: 'casual', label: 'Casual Leave' },
-  { value: 'maternity', label: 'Maternity Leave' },
-  { value: 'paternity', label: 'Paternity Leave' },
-  { value: 'unpaid', label: 'Unpaid Leave' }
+  { value: 'annual', label: 'Annual Leave', entitlement: 30, description: 'Annual leave entitlement based on hire date' },
+  { value: 'sick', label: 'Sick Leave', entitlement: 30, description: 'Requires medical certificate' },
+  { value: 'emergency', label: 'Emergency Leave', entitlement: 5, description: 'For urgent personal matters' },
+  { value: 'maternity', label: 'Maternity Leave', entitlement: 60, description: '60 days for women, 30 days for guests' },
+  { value: 'paternity', label: 'Paternity Leave', entitlement: 3, description: '3 days for new fathers' },
+  { value: 'family', label: 'Family Care', entitlement: 10, description: 'To care for immediate family members' },
+  { value: 'unpaid', label: 'Unpaid Leave', entitlement: 0, description: 'Leave without pay' }
 ];
 
 const leaveStatus = [
@@ -65,6 +67,60 @@ const mockLeaves = [
     department: 'Finance'
   }
 ];
+
+// Public holidays for 2025 in Maldives
+const publicHolidays = [
+  { date: '2025-01-01', name: 'New Year\'s Day' },
+  { date: '2025-03-01', name: 'First Day of Ramazan' },
+  { date: '2025-03-31', name: 'Eid-ul-Fithr' },
+  { date: '2025-04-01', name: 'Eid-ul-Fithr Holiday' },
+  { date: '2025-04-02', name: 'Eid-ul-Fithr Holiday' },
+  { date: '2025-05-01', name: 'International Worker\'s Day' },
+  { date: '2025-06-05', name: 'Hajj Day' },
+  { date: '2025-06-06', name: 'Eid-ul-Al\'haa' },
+  { date: '2025-06-08', name: 'Eid-ul-Al\'haa Holiday' },
+  { date: '2025-06-09', name: 'Eid-ul-Al\'haa Holiday' },
+  { date: '2025-06-26', name: 'Islamic New Year' },
+  { date: '2025-07-26', name: 'Independence Day' },
+  { date: '2025-07-27', name: 'Independence Day Holiday' },
+  { date: '2025-08-24', name: 'Rabi\' al-awwal' },
+  { date: '2025-09-04', name: 'Milad Un Nabi (Mawlid)' },
+  { date: '2025-09-24', name: 'The Day Maldives Embraced Islam' },
+  { date: '2025-11-03', name: 'Victory Day' },
+  { date: '2025-11-11', name: 'Republic Day' },
+  { date: '2025-12-25', name: 'Christmas Day' }
+];
+
+// Function to calculate leave balance
+const calculateLeaveBalance = (employee, leaveType) => {
+  // Get leave type definition
+  const leaveTypeObj = leaveTypes.find(type => type.value === leaveType);
+  if (!leaveTypeObj) return 0;
+  
+  // Base entitlement
+  let entitlement = leaveTypeObj.entitlement;
+  
+  // For annual leave, pro-rate based on hire date if this is current year
+  if (leaveType === 'annual' && employee.joinedDate) {
+    const hireDate = new Date(employee.joinedDate);
+    const currentYear = new Date().getFullYear();
+    const hireYear = hireDate.getFullYear();
+    
+    if (hireYear === currentYear) {
+      // Pro-rate based on month of hire
+      const monthsWorked = 12 - hireDate.getMonth();
+      entitlement = Math.round((entitlement / 12) * monthsWorked);
+    }
+  }
+  
+  // Special case for maternity leave based on gender
+  if (leaveType === 'maternity') {
+    // Assuming 'gender' field exists in employee data
+    entitlement = employee.gender === 'female' ? 60 : 30; // 60 for women, 30 for guests
+  }
+  
+  return entitlement;
+};
 
 const LeavePlan = () => {
   const [leaves, setLeaves] = useState(mockLeaves);
@@ -258,10 +314,57 @@ const LeavePlan = () => {
     total: filteredLeaves.length
   };
 
+  // Calculate leave balances for the selected employee
+  const getLeaveBalances = () => {
+    if (!selectedEmployee) return {};
+    
+    const employee = employees.find(emp => emp.id === selectedEmployee);
+    if (!employee) return {};
+    
+    const balances = {};
+    leaveTypes.forEach(type => {
+      // Get entitlement
+      const entitlement = calculateLeaveBalance(employee, type.value);
+      
+      // Calculate used leaves
+      const usedLeaves = leaveRecords
+        .filter(leave => 
+          leave.employeeId === employee.id && 
+          leave.leaveType === type.value && 
+          leave.status === 'approved'
+        )
+        .reduce((total, leave) => total + leave.days, 0);
+      
+      // Calculate balance
+      balances[type.value] = {
+        entitlement,
+        used: usedLeaves,
+        remaining: entitlement - usedLeaves
+      };
+    });
+    
+    return balances;
+  };
+  
+  // Handle opening the leave balance dialog
+  const handleLeaveBalanceDialogOpen = (employeeId) => {
+    setSelectedEmployee(employeeId);
+    setLeaveBalances(getLeaveBalances());
+    setLeaveBalanceDialogOpen(true);
+  };
+  
+  // Handle public holiday dialog
+  const handlePublicHolidayDialogOpen = () => {
+    setPublicHolidayDialogOpen(true);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>Leave Management</Typography>
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+          Manage leave requests, balances, and holiday schedules
+        </Typography>
         
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
@@ -611,6 +714,107 @@ const LeavePlan = () => {
           <DialogActions>
             <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSaveLeave} variant="contained">Save</Button>
+          </DialogActions>
+        </Dialog>
+        
+        {/* Leave Balance Dialog */}
+        <Dialog open={leaveBalanceDialogOpen} onClose={() => setLeaveBalanceDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Leave Balance Details</DialogTitle>
+          <DialogContent>
+            {selectedEmployee && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  {employees.find(emp => emp.id === selectedEmployee)?.name || 'Employee'}
+                </Typography>
+                
+                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Leave Type</TableCell>
+                        <TableCell>Description</TableCell>
+                        <TableCell align="center">Entitlement</TableCell>
+                        <TableCell align="center">Used</TableCell>
+                        <TableCell align="center">Remaining</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {leaveTypes.map(type => {
+                        const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, remaining: 0 };
+                        return (
+                          <TableRow key={type.value}>
+                            <TableCell>{type.label}</TableCell>
+                            <TableCell>{type.description}</TableCell>
+                            <TableCell align="center">{balance.entitlement}</TableCell>
+                            <TableCell align="center">{balance.used}</TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                color={
+                                  balance.remaining <= 0 ? 'error.main' :
+                                  balance.remaining < 5 ? 'warning.main' : 'success.main'
+                                }
+                                fontWeight="bold"
+                              >
+                                {balance.remaining}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>Leave Policies:</Typography>
+                  <ul>
+                    <li>Annual leave: 30 days per year based on hire date</li>
+                    <li>Sick leave: 30 days per year with medical certificate</li>
+                    <li>Off days: 4 days per week</li>
+                    <li>Maternity leave: 60 days for women, 30 days for guests</li>
+                    <li>Paternity leave: 3 days</li>
+                    <li>Family care leave: 10 days per year</li>
+                    <li>Emergency leave: 5 days per year</li>
+                  </ul>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setLeaveBalanceDialogOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+        
+        {/* Public Holidays Dialog */}
+        <Dialog open={publicHolidayDialogOpen} onClose={() => setPublicHolidayDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Public Holidays (2025)</DialogTitle>
+          <DialogContent>
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Day</TableCell>
+                    <TableCell>Holiday</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {publicHolidays.map((holiday, index) => {
+                    const holidayDate = new Date(holiday.date);
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>{format(holidayDate, 'dd-MMM-yyyy')}</TableCell>
+                        <TableCell>{format(holidayDate, 'EEEE')}</TableCell>
+                        <TableCell>{holiday.name}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setPublicHolidayDialogOpen(false)}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>

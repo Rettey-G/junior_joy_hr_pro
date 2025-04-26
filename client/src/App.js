@@ -13,6 +13,7 @@ import PayrollDetails from './pages/PayrollDetails';
 import LeavePlan from './pages/LeavePlan';
 import OrgChart from './pages/OrgChart';
 import Reports from './pages/Reports';
+import TimeAttendance from './pages/TimeAttendance';
 
 // Components
 import Navbar from './components/Navbar';
@@ -50,6 +51,7 @@ function App() {
             <Route path="/leave-plan" element={isAuthenticated() ? <LeavePlan /> : <Navigate to="/login" />} />
             <Route path="/org-chart" element={isAuthenticated() ? <OrgChart /> : <Navigate to="/login" />} />
             <Route path="/reports" element={isAuthenticated() ? <Reports /> : <Navigate to="/login" />} />
+            <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
             <Route path="/users" element={isAuthenticated() ? <Users /> : <Navigate to="/login" />} />
           </Routes>
         </div>
