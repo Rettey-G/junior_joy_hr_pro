@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import allEmployeeData from '../data/allEmployeeData';
 
 import {
   Container,
@@ -92,35 +93,28 @@ const Employees = () => {
   const user = userString ? JSON.parse(userString) : null;
   const isAdmin = user && user.role === 'admin';
 
-  // Fetch employees
+  // Fetch employees - now using our comprehensive employee data
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      let url = `${process.env.REACT_APP_API_URL}/api/employees`;
+      // Instead of API fetch, use our local employee data
+      // Filter the employee data based on the filters
+      let filteredData = [...allEmployeeData];
       
-      // Add filters if present
-      const queryParams = [];
-      if (filters.department) queryParams.push(`department=${filters.department}`);
-      if (filters.workSite) queryParams.push(`workSite=${filters.workSite}`);
-      if (queryParams.length > 0) {
-        url += `?${queryParams.join('&')}`;
+      if (filters.department) {
+        filteredData = filteredData.filter(emp => emp.department === filters.department);
       }
       
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch employees');
+      if (filters.workSite) {
+        filteredData = filteredData.filter(emp => emp.workSite === filters.workSite);
       }
       
-      const data = await response.json();
-      setEmployees(data);
+      // Set the employee data
+      setEmployees(filteredData);
+      showSnackbar('Employee data updated successfully', 'success');
     } catch (err) {
-      setError(err.message);
-      showSnackbar(err.message, 'error');
+      setError('Error loading employee data');
+      showSnackbar('Error loading employee data', 'error');
     } finally {
       setLoading(false);
     }
@@ -198,71 +192,61 @@ const Employees = () => {
     fileInputRef.current.click();
   };
 
-  // Save employee (create or update)
+  // Save employee (create or update) - now working with local data
   const handleSaveEmployee = async () => {
     try {
       const isEditing = !!currentEmployee;
-      const url = isEditing 
-        ? `${process.env.REACT_APP_API_URL}/api/employees/${currentEmployee._id}`
-        : `${process.env.REACT_APP_API_URL}/api/employees`;
       
-      const method = isEditing ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save employee');
-      }
-      
-      const savedEmployee = await response.json();
+      // Create a new employee object with all fields
+      const employeeData = {
+        ...formData,
+        _id: formData.empNo // Use empNo as the ID
+      };
       
       if (isEditing) {
         // Update in the list
-        setEmployees(employees.map(emp => emp._id === savedEmployee._id ? savedEmployee : emp));
+        setEmployees(employees.map(emp => emp.empNo === currentEmployee.empNo ? employeeData : emp));
         showSnackbar('Employee updated successfully', 'success');
       } else {
+        // Generate a new employee number if not provided
+        if (!employeeData.empNo) {
+          const lastEmpNo = employees.length > 0 
+            ? Math.max(...employees.map(e => parseInt(e.empNo.replace('FEM', ''))) || 0)
+            : 0;
+          employeeData.empNo = `FEM${String(lastEmpNo + 1).padStart(3, '0')}`;
+          employeeData._id = employeeData.empNo;
+        }
+        
         // Add to the list
-        setEmployees([...employees, savedEmployee]);
+        setEmployees([...employees, employeeData]);
         showSnackbar('Employee added successfully', 'success');
       }
       
+      // In a real app, here you would save to the backend
+      // For now we're just working with local data
+      
       handleCloseDialog();
     } catch (err) {
-      showSnackbar(err.message, 'error');
+      showSnackbar('Error saving employee: ' + (err.message || 'Unknown error'), 'error');
     }
   };
 
-  // Delete employee
-  const handleDeleteEmployee = async (id) => {
+  // Delete employee - now working with local data
+  const handleDeleteEmployee = async (empNo) => {
     if (!window.confirm('Are you sure you want to delete this employee?')) {
       return;
     }
     
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/employees/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete employee');
-      }
-      
-      // Remove from the list
-      setEmployees(employees.filter(emp => emp._id !== id));
+      // Remove from the local list only
+      setEmployees(employees.filter(emp => emp.empNo !== empNo));
       showSnackbar('Employee deleted successfully', 'success');
+      
+      // In a real app, here you would make the API call to delete from the backend
+      // For now we're just working with local data
+      
     } catch (err) {
-      showSnackbar(err.message, 'error');
+      showSnackbar('Error deleting employee: ' + (err.message || 'Unknown error'), 'error');
     }
   };
 
@@ -308,8 +292,37 @@ const Employees = () => {
   };
 
   // Get unique departments for filter dropdown
-  const departments = [...new Set(employees.map(emp => emp.department))].filter(Boolean).sort();
-  const workSites = ['Office', 'Express 1', 'Express 3'];
+  const getDepartments = () => {
+    const uniqueDepartments = new Set();
+    employees.forEach(employee => {
+      if (employee.department) {
+        uniqueDepartments.add(employee.department);
+      }
+    });
+    return Array.from(uniqueDepartments).sort();
+  };
+  
+  // Get unique worksites
+  const getWorkSites = () => {
+    const uniqueWorkSites = new Set();
+    employees.forEach(employee => {
+      if (employee.workSite) {
+        uniqueWorkSites.add(employee.workSite);
+      }
+    });
+    return Array.from(uniqueWorkSites).sort();
+  };
+  
+  // Get unique nationalities
+  const getNationalities = () => {
+    const uniqueNationalities = new Set();
+    employees.forEach(employee => {
+      if (employee.nationality) {
+        uniqueNationalities.add(employee.nationality);
+      }
+    });
+    return Array.from(uniqueNationalities).sort();
+  };
 
   return (
     <Box sx={{ px: isMobile ? 1 : 3, mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
@@ -390,7 +403,7 @@ const Employees = () => {
                     onChange={handleFilterChange}
                   >
                     <MenuItem value="">All Departments</MenuItem>
-                    {departments.map(dept => (
+                    {getDepartments().map(dept => (
                       <MenuItem key={dept} value={dept}>{dept}</MenuItem>
                     ))}
                   </Select>
@@ -406,7 +419,7 @@ const Employees = () => {
                     onChange={handleFilterChange}
                   >
                     <MenuItem value="">All Sites</MenuItem>
-                    {workSites.map(site => (
+                    {getWorkSites().map(site => (
                       <MenuItem key={site} value={site}>{site}</MenuItem>
                     ))}
                   </Select>
@@ -568,50 +581,59 @@ const Employees = () => {
             <Table sx={{ minWidth: 650 }} size={isTablet ? "small" : "medium"}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                  <TableCell>EMP NO</TableCell>
-                  <TableCell>Employee Name</TableCell>
+                  <TableCell>Emp No</TableCell>
+                  <TableCell>Name</TableCell>
                   <TableCell>ID Number</TableCell>
-                  {!isTablet && <TableCell>Gender</TableCell>}
                   <TableCell>Designation</TableCell>
                   <TableCell>Department</TableCell>
                   <TableCell>Work Site</TableCell>
-                  <TableCell>Salary (USD)</TableCell>
-                  {!isTablet && <TableCell>Salary (MVR)</TableCell>}
-                  {!isTablet && <TableCell>Joined Date</TableCell>}
-                  {isAdmin && <TableCell align="center">Actions</TableCell>}
+                  <TableCell>Joined Date</TableCell>
+                  <TableCell>Nationality</TableCell>
+                  <TableCell align="center">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {employees.map((employee) => (
-                  <TableRow key={employee._id} hover>
+                  <TableRow key={employee.empNo} hover>
                     <TableCell>{employee.empNo}</TableCell>
                     <TableCell>{employee.name}</TableCell>
                     <TableCell>{employee.idNumber}</TableCell>
-                    {!isTablet && <TableCell>{employee.gender}</TableCell>}
                     <TableCell>{employee.designation}</TableCell>
                     <TableCell>{employee.department}</TableCell>
                     <TableCell>{employee.workSite}</TableCell>
-                    <TableCell>${employee.salaryUSD || 0}</TableCell>
-                    {!isTablet && <TableCell>{employee.salaryMVR || 0} MVR</TableCell>}
-                    {!isTablet && <TableCell>{formatDate(employee.joinedDate)}</TableCell>}
-                    {isAdmin && (
-                      <TableCell align="center">
+                    <TableCell>{formatDate(employee.joinedDate)}</TableCell>
+                    <TableCell>{employee.nationality}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="View">
                         <IconButton 
-                          size="small" 
-                          color="primary"
+                          size="small"
                           onClick={() => handleOpenDialog(employee)}
                         >
-                          <Edit fontSize="small" />
+                          <Visibility fontSize="small" />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => handleDeleteEmployee(employee._id)}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    )}
+                      </Tooltip>
+                      {isAdmin && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleOpenDialog(employee)}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => handleDeleteEmployee(employee.empNo)}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
