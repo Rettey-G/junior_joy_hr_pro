@@ -605,190 +605,135 @@ const Employees = () => {
           <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>
             <Typography color="textSecondary">No employees found</Typography>
           </Paper>
-        ) : isMobile ? (
-          // Mobile Card View
-          <Stack spacing={2}>
+        ) : (
+          // Card View for both mobile and desktop
+          <Grid container spacing={2}>
             {employees.map((employee) => (
-              <Card key={employee.empNo} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: employee.gender === 'Female' ? 'pink' : 'primary.light', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {employee.image ? (
-                      <Avatar 
-                        src={employee.image} 
-                        alt={employee.name} 
-                        sx={{ 
-                          width: 60, 
-                          height: 60, 
-                          border: '3px solid white',
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                        }} 
-                      />
-                    ) : (
-                      <Avatar 
-                        src={getProfileImageByGender(employee.gender)}
-                        sx={{ 
-                          width: 60, 
-                          height: 60, 
-                          bgcolor: employee.gender === 'Female' ? '#ec407a' : '#1976d2', 
-                          border: '3px solid white',
-                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                        }}
-                      >
-                        {employee.name.charAt(0)}
-                      </Avatar>
-                    )}
-                    <Box sx={{ ml: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="white">{employee.name}</Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                        <Chip size="small" label={employee.empNo} sx={{ backgroundColor: 'white', height: 20, fontSize: '0.7rem' }} />
-                        <Chip size="small" label={employee.nationality} sx={{ backgroundColor: 'rgba(255,255,255,0.7)', height: 20, fontSize: '0.7rem' }} />
+              <Grid item xs={12} sm={6} md={4} lg={3} key={employee.empNo}>
+                <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: employee.gender === 'Female' ? 'pink' : 'primary.light', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {employee.image ? (
+                        <Avatar 
+                          src={employee.image} 
+                          alt={employee.name} 
+                          sx={{ 
+                            width: 60, 
+                            height: 60, 
+                            border: '3px solid white',
+                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                          }} 
+                        />
+                      ) : (
+                        <Avatar 
+                          src={getProfileImageByGender(employee.gender)}
+                          sx={{ 
+                            width: 60, 
+                            height: 60, 
+                            bgcolor: employee.gender === 'Female' ? '#ec407a' : '#1976d2', 
+                            border: '3px solid white',
+                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                          }}
+                        >
+                          {employee.name.charAt(0)}
+                        </Avatar>
+                      )}
+                      <Box sx={{ ml: 2 }}>
+                        <Typography variant="subtitle1" fontWeight="bold" color="white">{employee.name}</Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                          <Chip size="small" label={employee.empNo} sx={{ backgroundColor: 'white', height: 20, fontSize: '0.7rem' }} />
+                          <Chip size="small" label={employee.nationality} sx={{ backgroundColor: 'rgba(255,255,255,0.7)', height: 20, fontSize: '0.7rem' }} />
+                        </Box>
                       </Box>
                     </Box>
                   </Box>
-                </Box>
-                
-                <CardContent sx={{ pb: 1 }}>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', borderBottom: '1px solid #eee', pb: 0.5 }}>
-                      {employee.designation} • {employee.department}
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={1.5}>
-                    <Grid item xs={6}>
-                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
-                        <Typography variant="caption" color="textSecondary" display="block">ID Number</Typography>
-                        <Typography variant="body2" fontWeight="medium">{employee.idNumber}</Typography>
-                      </Paper>
+                  
+                  <CardContent sx={{ pb: 1, flexGrow: 1 }}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', borderBottom: '1px solid #eee', pb: 0.5 }}>
+                        {employee.designation} • {employee.department}
+                      </Typography>
+                    </Box>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={6}>
+                        <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                          <Typography variant="caption" color="textSecondary" display="block">ID Number</Typography>
+                          <Typography variant="body2" fontWeight="medium">{employee.idNumber}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                          <Typography variant="caption" color="textSecondary" display="block">Work Site</Typography>
+                          <Typography variant="body2" fontWeight="medium">{employee.workSite}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                          <Typography variant="caption" color="textSecondary" display="block">Mobile</Typography>
+                          <Typography variant="body2" fontWeight="medium" noWrap>{employee.mobileNumber || 'N/A'}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                          <Typography variant="caption" color="textSecondary" display="block">Joined</Typography>
+                          <Typography variant="body2" fontWeight="medium">{formatDate(employee.joinedDate)}</Typography>
+                        </Paper>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
-                        <Typography variant="caption" color="textSecondary" display="block">Work Site</Typography>
-                        <Typography variant="body2" fontWeight="medium">{employee.workSite}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
-                        <Typography variant="caption" color="textSecondary" display="block">Mobile</Typography>
-                        <Typography variant="body2" fontWeight="medium" noWrap>{employee.mobileNumber || 'N/A'}</Typography>
-                      </Paper>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
-                        <Typography variant="caption" color="textSecondary" display="block">Joined</Typography>
-                        <Typography variant="body2" fontWeight="medium">{formatDate(employee.joinedDate)}</Typography>
-                      </Paper>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-                
-                <Divider />
-                
-                <CardActions sx={{ justifyContent: 'space-between', p: 1, bgcolor: '#f8f8f8' }}>
-                  <Box>
-                    <Chip 
-                      variant="outlined" 
-                      size="small" 
-                      label={formatDate(employee.joinedDate)}
-                      sx={{ fontSize: '0.7rem', height: '24px' }} 
-                    />
-                  </Box>
-                  <Box>
-                    <Button 
-                      size="small" 
-                      startIcon={<Visibility fontSize="small" />}
-                      onClick={() => handleOpenDialog(employee)}
-                    >
-                      View
-                    </Button>
+                  </CardContent>
+                  
+                  <Box sx={{ mt: 'auto' }}>
+                    <Divider />
                     
-                    {isAdmin && (
-                      <>
-                        <Button 
+                    <CardActions sx={{ justifyContent: 'space-between', p: 1, bgcolor: '#f8f8f8' }}>
+                      <Box>
+                        <Chip 
+                          variant="outlined" 
                           size="small" 
-                          startIcon={<Edit fontSize="small" />}
-                          onClick={() => handleOpenDialog(employee)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          size="small" 
-                          color="error" 
-                          startIcon={<Delete fontSize="small" />}
-                          onClick={() => handleDeleteEmployee(employee.empNo)}
-                        >
-                          Delete
-                        </Button>
-                      </>
-                    )}
+                          label={formatDate(employee.joinedDate)}
+                          sx={{ fontSize: '0.7rem', height: '24px' }} 
+                        />
+                      </Box>
+                      <Box>
+                        <Tooltip title="View Details">
+                          <IconButton 
+                            size="small"
+                            color="primary"
+                            onClick={() => handleOpenDialog(employee)}
+                          >
+                            <Visibility fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        
+                        {isAdmin && (
+                          <>
+                            <Tooltip title="Edit Employee">
+                              <IconButton 
+                                size="small"
+                                color="primary"
+                                onClick={() => handleOpenDialog(employee)}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete Employee">
+                              <IconButton 
+                                size="small" 
+                                color="error"
+                                onClick={() => handleDeleteEmployee(employee.empNo)}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                      </Box>
+                    </CardActions>
                   </Box>
-                </CardActions>
-              </Card>
+                </Card>
+              </Grid>
             ))}
-          </Stack>
-        ) : (
-          // Desktop Table View
-          <TableContainer component={Paper} variant="outlined">
-            <Table sx={{ minWidth: 650 }} size={isTablet ? "small" : "medium"}>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                  <TableCell>Emp No</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>ID Number</TableCell>
-                  <TableCell>Designation</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Work Site</TableCell>
-                  <TableCell>Joined Date</TableCell>
-                  <TableCell>Nationality</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.empNo} hover>
-                    <TableCell>{employee.empNo}</TableCell>
-                    <TableCell>{employee.name}</TableCell>
-                    <TableCell>{employee.idNumber}</TableCell>
-                    <TableCell>{employee.designation}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>{employee.workSite}</TableCell>
-                    <TableCell>{formatDate(employee.joinedDate)}</TableCell>
-                    <TableCell>{employee.nationality}</TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="View">
-                        <IconButton 
-                          size="small"
-                          onClick={() => handleOpenDialog(employee)}
-                        >
-                          <Visibility fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {isAdmin && (
-                        <>
-                          <Tooltip title="Edit">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleOpenDialog(employee)}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton 
-                              size="small" 
-                              color="error"
-                              onClick={() => handleDeleteEmployee(employee.empNo)}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          </Grid>
         )}
       </Paper>
 
