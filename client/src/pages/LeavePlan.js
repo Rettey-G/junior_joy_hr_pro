@@ -8,7 +8,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { Add, CalendarMonth } from '@mui/icons-material';
+import { Add, CalendarMonth, Person } from '@mui/icons-material';
 import { format } from 'date-fns';
 import api from '../services/api';
 
@@ -151,18 +151,39 @@ const LeavePlan = () => {
   const userRole = localStorage.getItem('userRole');
   const isAdmin = userRole === 'admin' || userRole === 'hr';
 
-  // Fetch employees
-  const fetchEmployees = async () => {
+  // Fetch employees data and leave records
+  const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await api.get('/api/employees', {
+      const employeesResponse = await api.get('/api/employees', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEmployees(response.data);
+      setEmployees(employeesResponse.data);
+      
+      // In a real app, we'd fetch leave records from the API
+      // For now, just use the mock data and update it with employee information
+      const updatedLeaveRecords = mockLeaves.map(leave => {
+        const employee = employeesResponse.data.find(emp => emp.id === leave.employeeId);
+        return {
+          ...leave,
+          employeeName: employee ? employee.name : 'Unknown Employee',
+          department: employee ? employee.department : 'Unknown Department'
+        };
+      });
+      
+      setLeaveRecords(updatedLeaveRecords);
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching employees:', err);
+      console.error('Error fetching data:', err);
+      setError('Failed to fetch data');
+      setLoading(false);
     }
   };
+
+  // Initial data load
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Fetch real leave data from backend (to be implemented)
   const fetchLeaves = async () => {
@@ -370,6 +391,29 @@ const LeavePlan = () => {
         <Typography variant="subtitle1" color="text.secondary" gutterBottom>
           Manage leave requests, balances, and holiday schedules
         </Typography>
+        
+        {/* Action buttons for Leave Balance and Public Holidays */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<CalendarMonth />}
+            onClick={() => handlePublicHolidayDialogOpen()}
+          >
+            View Public Holidays
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<Person />}
+            onClick={() => {
+              if (employees.length > 0) {
+                handleLeaveBalanceDialogOpen(employees[0].id);
+              }
+            }}
+            disabled={loading || employees.length === 0}
+          >
+            View Leave Balance
+          </Button>
+        </Box>
         
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>

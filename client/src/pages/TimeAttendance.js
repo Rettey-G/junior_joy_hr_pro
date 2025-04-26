@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Button, Card, CardContent, IconButton, TextField,
@@ -12,7 +12,7 @@ import {
   Add, Edit, AccessTime, HourglassEmpty, TimerOff, 
   WorkOff, EventBusy, CalendarToday, FilterList 
 } from '@mui/icons-material';
-import { format, differenceInHours, isWeekend, isToday, parseISO, addDays } from 'date-fns';
+import { format, isWeekend, parseISO, addDays } from 'date-fns';
 import api from '../services/api';
 
 // Status chips with colors
@@ -82,7 +82,7 @@ const TimeAttendance = () => {
   const [filterDepartment, setFilterDepartment] = useState('');
 
   // Mock data for attendance records (would be replaced with API calls)
-  const generateMockAttendanceData = () => {
+  const generateMockAttendanceData = useCallback(() => {
     const records = [];
     const today = new Date();
     
@@ -160,7 +160,7 @@ const TimeAttendance = () => {
     }
     
     return records;
-  };
+  }, [employees]);
 
   // Fetch employee data
   useEffect(() => {
@@ -187,7 +187,7 @@ const TimeAttendance = () => {
     };
     
     fetchEmployees();
-  }, []);
+  }, [generateMockAttendanceData]); // Add the dependency
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
