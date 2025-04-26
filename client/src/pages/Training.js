@@ -869,6 +869,33 @@ const Training = () => {
   
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      {/* Header with Logo */}
+      <Paper 
+        elevation={1} 
+        sx={{ 
+          p: 2, 
+          mb: 3, 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: 1
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <img 
+            src="/juniorjoyhr.jpg" 
+            alt="Junior Joy HR Pro" 
+            style={{ width: 45, height: 45, borderRadius: '50%', marginRight: 12 }} 
+          />
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+            Junior Joy HR Pro
+          </Typography>
+        </Box>
+        <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+          Happy Teams, Smarter HR
+        </Typography>
+      </Paper>
+
       {error && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           {error}
@@ -1292,6 +1319,51 @@ const Training = () => {
           getEmployeeById={getEmployeeById}
         />
       )}
+
+      {/* Footer */}
+      <Paper elevation={3} sx={{ mt: 4, p: 3, borderRadius: 0, borderTop: '1px solid #eee' }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+              <img src="/juniorjoyhr.jpg" alt="Junior Joy HR Pro" style={{ width: 50, height: 50, borderRadius: '50%' }} />
+              <Typography variant="h6" sx={{ ml: 2, fontWeight: 'bold' }}>
+                Junior Joy HR Pro
+              </Typography>
+            </Box>
+            <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 1 }}>
+              Happy Teams, Smarter HR
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+              Quick Links
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button size="small" color="primary">Dashboard</Button>
+              <Button size="small" color="primary">Employees</Button>
+              <Button size="small" color="primary">Payroll</Button>
+              <Button size="small" color="primary">Training</Button>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'right' } }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Contact Support
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              support@juniorjoyhrpro.com
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              +960 7974242
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="caption" color="textSecondary" align="center" display="block">
+              © {new Date().getFullYear()} Junior Joy HR Pro. All rights reserved.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
     </Container>
   );
 };

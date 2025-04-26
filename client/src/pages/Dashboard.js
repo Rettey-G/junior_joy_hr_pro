@@ -526,17 +526,113 @@ const Dashboard = () => {
     );
   }
 
+  // If loading, show loading spinner
+  if (loading) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+          <CircularProgress />
+          <Typography variant="h6" sx={{ ml: 2 }}>Loading dashboard data...</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
+        {/* Header with Logo */}
+        <Paper 
+          elevation={1} 
+          sx={{ 
+            p: 2, 
+            mb: 3, 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: 1
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <img 
+              src="/juniorjoyhr.jpg" 
+              alt="Junior Joy HR Pro" 
+              style={{ width: 45, height: 45, borderRadius: '50%', marginRight: 12 }} 
+            />
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+              Junior Joy HR Pro
+            </Typography>
+          </Box>
+          <Typography variant="subtitle2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+            Happy Teams, Smarter HR
+          </Typography>
+        </Paper>
+        
         {error && (
           <Alert severity="warning" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
         
-        <Typography variant={isMobile ? "h5" : "h4"} gutterBottom sx={{ textAlign: "left" }}>
-          HR Dashboard
+        {/* User Welcome Section */}
+        <Paper 
+          elevation={3} 
+          sx={{
+            p: 3,
+            mb: 4,
+            borderRadius: 2,
+            background: 'linear-gradient(to right, #3a7bd5, #00d2ff)',
+            color: 'white',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box 
+              component="img"
+              src={currentUser?.avatar || '/juniorjoyhr.jpg'}
+              alt="Junior Joy HR Pro Logo"
+              sx={{
+                width: 70,
+                height: 70,
+                borderRadius: '50%',
+                border: '3px solid white',
+                objectFit: 'cover',
+                backgroundColor: 'white'
+              }}
+            />
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                Welcome back, {currentUser?.name.split(' ')[0] || 'User'}
+              </Typography>
+              <Typography variant="body1">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+                Role: {currentUser?.role || 'Admin'} | Last login: {currentUser?.lastLogin || 'Today'}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+            <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+              <Notifications />
+              <Typography variant="body2">3 New Notifications</Typography>
+            </Paper>
+            <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
+              <Event />
+              <Typography variant="body2">2 Upcoming Events</Typography>
+            </Paper>
+          </Box>
+        </Paper>
+
+        {/* Analytics Dashboard Component */}
+        <AnalyticsDashboard />
+        
+        <Typography variant="h4" gutterBottom sx={{ textAlign: "left", mt: 4, fontWeight: 'bold', color: '#2c3e50' }}>
+          Dashboard Overview
         </Typography>
         
         {/* Stats Cards */}
@@ -865,86 +961,50 @@ const Dashboard = () => {
           {notification}
         </Alert>
       </Snackbar>
-      
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-          <CircularProgress />
-          <Typography variant="h6" sx={{ ml: 2 }}>Loading dashboard data...</Typography>
-        </Box>
-      ) : error ? (
-        <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
-      ) : (
-        <>
-          {/* New Analytics Dashboard */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" gutterBottom>
-              Dashboard
+      {/* Footer */}
+      <Paper elevation={3} sx={{ mt: 4, p: 3, borderRadius: 0, borderTop: '1px solid #eee' }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+              <img src="/juniorjoyhr.jpg" alt="Junior Joy HR Pro" style={{ width: 50, height: 50, borderRadius: '50%' }} />
+              <Typography variant="h6" sx={{ ml: 2, fontWeight: 'bold' }}>
+                Junior Joy HR Pro
+              </Typography>
+            </Box>
+            <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 1 }}>
+              Happy Teams, Smarter HR
             </Typography>
-          </Box>
-          
-          {/* User Welcome Section */}
-          <Paper 
-            elevation={3} 
-            sx={{
-              p: 3,
-              mb: 4,
-              borderRadius: 2,
-              background: 'linear-gradient(to right, #3a7bd5, #00d2ff)',
-              color: 'white',
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box 
-                component="img"
-                src={currentUser?.avatar || '/juniorjoyhr.jpg'}
-                alt="User Avatar"
-                sx={{
-                  width: 70,
-                  height: 70,
-                  borderRadius: '50%',
-                  border: '3px solid white',
-                  objectFit: 'cover',
-                  backgroundColor: 'white'
-                }}
-              />
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                  Welcome back, {currentUser?.name.split(' ')[0] || 'User'}
-                </Typography>
-                <Typography variant="body1">
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
-                  Role: {currentUser?.role || 'Admin'} | Last login: {currentUser?.lastLogin || 'Today'}
-                </Typography>
-              </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+              Quick Links
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button size="small" color="primary">Dashboard</Button>
+              <Button size="small" color="primary">Employees</Button>
+              <Button size="small" color="primary">Payroll</Button>
+              <Button size="small" color="primary">Training</Button>
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
-              <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                <Notifications />
-                <Typography variant="body2">3 New Notifications</Typography>
-              </Paper>
-              <Paper sx={{ px: 2, py: 1, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                <Event />
-                <Typography variant="body2">2 Upcoming Events</Typography>
-              </Paper>
-            </Box>
-          </Paper>
-          
-          {/* Analytics Dashboard */}
-          <AnalyticsDashboard />
-
-          {/* Stats Cards */}
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50', mt: 4 }}>
-            Dashboard Overview
-          </Typography>
-        </>
-      )}
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'right' } }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Contact Support
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              support@juniorjoyhrpro.com
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              +960 7974242
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="caption" color="textSecondary" align="center" display="block">
+              © {new Date().getFullYear()} Junior Joy HR Pro. All rights reserved.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
     </Box>
     </Container>
   );

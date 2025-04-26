@@ -217,10 +217,35 @@ const Employees = () => {
   // Handle saving new department
   const handleSaveDepartment = () => {
     if (newDepartment.trim()) {
-      // In a real app, you would save this to the backend
-      // For demo, we'll just show a success message
-      showSnackbar(`Department "${newDepartment}" added successfully`, 'success');
-      setDepartmentDialog(false);
+      try {
+        // In a real app, you would save this to the backend
+        // For now, simulate updating local data by adding to employees array
+        const dept = newDepartment.trim();
+        
+        // Check if department already exists
+        if (getDepartments().includes(dept)) {
+          showSnackbar(`Department "${dept}" already exists`, 'warning');
+          return;
+        }
+        
+        // Simulate adding to database
+        // For demo purposes - we'll update an employee to have this department
+        if (employees.length > 0) {
+          const updatedEmployees = [...employees];
+          // Update the first employee with the new department for demonstration
+          updatedEmployees[0] = {
+            ...updatedEmployees[0],
+            department: dept
+          };
+          setEmployees(updatedEmployees);
+        }
+        
+        showSnackbar(`Department "${dept}" added successfully`, 'success');
+        setDepartmentDialog(false);
+        setNewDepartment('');
+      } catch (err) {
+        showSnackbar(`Error adding department: ${err.message}`, 'error');
+      }
     } else {
       showSnackbar('Please enter a department name', 'error');
     }
@@ -235,10 +260,35 @@ const Employees = () => {
   // Handle saving new work site
   const handleSaveWorkSite = () => {
     if (newWorkSite.trim()) {
-      // In a real app, you would save this to the backend
-      // For demo, we'll just show a success message
-      showSnackbar(`Work Site "${newWorkSite}" added successfully`, 'success');
-      setWorkSiteDialog(false);
+      try {
+        // In a real app, you would save this to the backend
+        // For now, simulate updating local data by adding to employees array
+        const site = newWorkSite.trim();
+        
+        // Check if site already exists
+        if (getWorkSites().includes(site)) {
+          showSnackbar(`Work Site "${site}" already exists`, 'warning');
+          return;
+        }
+        
+        // Simulate adding to database
+        // For demo purposes - we'll update an employee to have this site
+        if (employees.length > 0) {
+          const updatedEmployees = [...employees];
+          // Update the first employee with the new work site for demonstration
+          updatedEmployees[0] = {
+            ...updatedEmployees[0],
+            workSite: site
+          };
+          setEmployees(updatedEmployees);
+        }
+        
+        showSnackbar(`Work Site "${site}" added successfully`, 'success');
+        setWorkSiteDialog(false);
+        setNewWorkSite('');
+      } catch (err) {
+        showSnackbar(`Error adding work site: ${err.message}`, 'error');
+      }
     } else {
       showSnackbar('Please enter a work site name', 'error');
     }
@@ -476,46 +526,72 @@ const Employees = () => {
             
             <Grid container spacing={isMobile ? 1 : 2}>
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
-                  <InputLabel>Department</InputLabel>
-                  <Select
-                    name="department"
-                    value={filters.department}
-                    label="Department"
-                    onChange={handleFilterChange}
-                    MenuProps={{ 
-                      PaperProps: { sx: { maxHeight: 300 } },
-                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-                      transformOrigin: { vertical: 'top', horizontal: 'left' }
-                    }}
-                  >
-                    <MenuItem value="">All Departments</MenuItem>
-                    {getDepartments().map(dept => (
-                      <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Box sx={{ display: 'flex', width: '100%' }}>
+                  <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
+                    <InputLabel>Department</InputLabel>
+                    <Select
+                      name="department"
+                      value={filters.department}
+                      label="Department"
+                      onChange={handleFilterChange}
+                      MenuProps={{ 
+                        PaperProps: { sx: { maxHeight: 300 } },
+                        anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                        transformOrigin: { vertical: 'top', horizontal: 'left' }
+                      }}
+                    >
+                      <MenuItem value="">All Departments</MenuItem>
+                      {getDepartments().map(dept => (
+                        <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  {isAdmin && (
+                    <Button 
+                      size="small" 
+                      variant="contained" 
+                      color="secondary"
+                      onClick={handleAddDepartment}
+                      sx={{ ml: 1, minWidth: '40px', height: isMobile ? '40px' : '40px', mt: isMobile ? '8px' : '16px' }}
+                    >
+                      <Add fontSize="small" />
+                    </Button>
+                  )}
+                </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
-                  <InputLabel>Work Site</InputLabel>
-                  <Select
-                    name="workSite"
-                    value={filters.workSite}
-                    label="Work Site"
-                    onChange={handleFilterChange}
-                    MenuProps={{ 
-                      PaperProps: { sx: { maxHeight: 300 } },
-                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-                      transformOrigin: { vertical: 'top', horizontal: 'left' }
-                    }}
-                  >
-                    <MenuItem value="">All Sites</MenuItem>
-                    {getWorkSites().map(site => (
-                      <MenuItem key={site} value={site}>{site}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Box sx={{ display: 'flex', width: '100%' }}>
+                  <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
+                    <InputLabel>Work Site</InputLabel>
+                    <Select
+                      name="workSite"
+                      value={filters.workSite}
+                      label="Work Site"
+                      onChange={handleFilterChange}
+                      MenuProps={{ 
+                        PaperProps: { sx: { maxHeight: 300 } },
+                        anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                        transformOrigin: { vertical: 'top', horizontal: 'left' }
+                      }}
+                    >
+                      <MenuItem value="">All Sites</MenuItem>
+                      {getWorkSites().map(site => (
+                        <MenuItem key={site} value={site}>{site}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  {isAdmin && (
+                    <Button 
+                      size="small" 
+                      variant="contained" 
+                      color="secondary"
+                      onClick={handleAddWorkSite}
+                      sx={{ ml: 1, minWidth: '40px', height: isMobile ? '40px' : '40px', mt: isMobile ? '8px' : '16px' }}
+                    >
+                      <Add fontSize="small" />
+                    </Button>
+                  )}
+                </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
