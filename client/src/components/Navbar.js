@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -7,11 +7,7 @@ import {
   Button, 
   Box,
   IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText
+  Avatar
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
@@ -23,30 +19,12 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
 
 const Navbar = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
   const isAdmin = userRole === 'admin';
-  
-  // State for dropdown menus
-  const [payrollAnchorEl, setPayrollAnchorEl] = useState(null);
-  const [orgAnchorEl, setOrgAnchorEl] = useState(null);
-  
-  // Handle menu open/close
-  const handlePayrollMenuOpen = (event) => setPayrollAnchorEl(event.currentTarget);
-  const handlePayrollMenuClose = () => setPayrollAnchorEl(null);
-  
-  const handleOrgMenuOpen = (event) => setOrgAnchorEl(event.currentTarget);
-  const handleOrgMenuClose = () => setOrgAnchorEl(null);
-  
-  // Navigate and close menu
-  const handleMenuNavigation = (path) => {
-    navigate(path);
-    handlePayrollMenuClose();
-    handleOrgMenuClose();
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');

@@ -174,7 +174,8 @@ const TimeAttendance = () => {
     }
     
     return records;
-  }, []); // No dependencies to prevent regeneration
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally not adding employees as dependency to prevent regeneration
 
   // Fetch employee data - run only once
   useEffect(() => {
@@ -212,6 +213,7 @@ const TimeAttendance = () => {
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - load once on mount
 
   // Handle tab change
