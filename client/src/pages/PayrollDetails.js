@@ -548,7 +548,7 @@ const PayrollDetails = () => {
                   borderRadius: 2,
                   minWidth: '250px'
                 }}
-                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 }, }, }}}
+                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 } } }}
               >
                 <MenuItem value="">All Departments</MenuItem>
                 {getDepartments().map(dept => (
@@ -575,7 +575,7 @@ const PayrollDetails = () => {
                     textOverflow: 'ellipsis'
                   }
                 }}
-                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 }, }, }}}
+                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 400 } } }}
               >
                 <MenuItem value="">All Employees</MenuItem>
                 {employees.map(emp => (
