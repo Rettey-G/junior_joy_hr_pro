@@ -74,6 +74,9 @@ const Training = () => {
   const [trainingPrograms, setTrainingPrograms] = useState([]);
   const [programDialogOpen, setProgramDialogOpen] = useState(false);
   const [currentProgram, setCurrentProgram] = useState(null);
+  const [filteredPrograms, setFilteredPrograms] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Training sessions state
   const [trainingSessions, setTrainingSessions] = useState([]);
@@ -173,26 +176,45 @@ const Training = () => {
   
   // Fetch all data on component mount
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        await Promise.all([
-          fetchEmployees(),
-          fetchTrainers(),
-          fetchTrainingPrograms(),
-          fetchTrainingSessions()
-        ]);
+        
+        // Fetch trainers
+        const trainersResponse = await axios.get(`${apiUrl}/api/trainers`);
+        if (trainersResponse.data) {
+          setTrainers(trainersResponse.data);
+        }
+        
+        // Fetch training programs
+        const programsResponse = await axios.get(`${apiUrl}/api/trainingprograms`);
+        if (programsResponse.data) {
+          const programs = programsResponse.data;
+          setTrainingPrograms(programs);
+          setFilteredPrograms(programs);
+        }
+        
+        // Fetch training sessions
+        const sessionsResponse = await axios.get(`${apiUrl}/api/trainingsessions`);
+        if (sessionsResponse.data) {
+          setTrainingSessions(sessionsResponse.data);
+        }
+        
+        // Fetch employees
+        const employeesResponse = await axios.get(`${apiUrl}/api/employees`);
+        if (employeesResponse.data) {
+          setEmployees(employeesResponse.data);
+        }
+        
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching training data:', err);
-        setError('Failed to load training data. Using demo data instead.');
-        // Use demo data if API fails
-        generateDemoData();
-        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        // Return empty array as fallback
+        return [];
       }
     };
     
-    fetchAllData();
+    fetchData();
   }, []);
   
   // Fetch employees from the database
@@ -499,6 +521,44 @@ const Training = () => {
   // Handle tab change
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+    // Reset filters when changing tabs
+    setCategoryFilter('All');
+    setSearchQuery('');
+    setFilteredPrograms(trainingPrograms);
+  };
+  
+  // Handle category filter change
+  const handleCategoryFilterChange = (event) => {
+    const category = event.target.value;
+    setCategoryFilter(category);
+    filterPrograms(searchQuery, category);
+  };
+  
+  // Handle search query change
+  const handleSearchQueryChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    filterPrograms(query, categoryFilter);
+  };
+  
+  // Filter programs based on search query and category
+  const filterPrograms = (query, category) => {
+    let filtered = trainingPrograms;
+    
+    // Apply search query filter
+    if (query) {
+      filtered = filtered.filter(program => 
+        program.name.toLowerCase().includes(query.toLowerCase()) ||
+        program.description.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (category !== 'All') {
+      filtered = filtered.filter(program => program.category === category);
+    }
+    
+    setFilteredPrograms(filtered);
   };
   
   // Get trainer by ID
@@ -1151,9 +1211,69 @@ const TrainingSessionsTab = ({
 
 // Training Programs Tab Component
 const TrainingProgramsTab = ({ programs, handleAddProgram }) => {
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredPrograms, setFilteredPrograms] = useState(programs);
+  
+  // Get unique categories from programs
+  const categories = ['All', ...new Set(programs.map(program => program.category))];
+  
+  // Handle category filter change
+  const handleCategoryChange = (event) => {
+    const category = event.target.value;
+    setCategoryFilter(category);
+    filterPrograms(searchQuery, category);
+  };
+  
+  // Handle search query change
+  const handleSearchChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    filterPrograms(query, categoryFilter);
+  };
+  
+  // Filter programs based on search query and category
+  const filterPrograms = (query, category) => {
+    let filtered = programs;
+    
+    // Apply search query filter
+    if (query) {
+      filtered = filtered.filter(program => 
+        program.name?.toLowerCase().includes(query.toLowerCase()) ||
+        program.description?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    
+    // Apply category filter
+    if (category !== 'All') {
+      filtered = filtered.filter(program => program.category === category);
+    }
+    
+    setFilteredPrograms(filtered);
+  };
+  
+  // Update filtered programs when programs prop changes
+  useEffect(() => {
+    setFilteredPrograms(programs);
+  }, [programs]);
+  
+  // Get color for category chip
+  const getCategoryColor = (category) => {
+    const categoryColors = {
+      'Safety': 'error',
+      'Technical': 'info',
+      'Management': 'success',
+      'Soft Skills': 'warning',
+      'Compliance': 'secondary',
+      'Leadership': 'primary',
+      'Security': 'error'
+    };
+    return categoryColors[category] || 'default';
+  };
+  
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5">Training Programs</Typography>
         <Button
           variant="contained"
@@ -1165,49 +1285,133 @@ const TrainingProgramsTab = ({ programs, handleAddProgram }) => {
         </Button>
       </Box>
       
-      <Grid container spacing={3}>
-        {programs.map(program => (
-          <Grid item xs={12} md={6} key={program.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {program.title}
-                  <Chip 
-                    label={program.skillLevel.charAt(0).toUpperCase() + program.skillLevel.slice(1)} 
-                    color={program.skillLevel === 'beginner' ? 'success' : program.skillLevel === 'intermediate' ? 'primary' : 'error'} 
-                    size="small" 
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-                
-                <Typography variant="body2" color="textSecondary" paragraph>
-                  {program.description}
-                </Typography>
-                
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle2">Category</Typography>
-                    <Typography variant="body2">{program.category}</Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle2">Duration</Typography>
-                    <Typography variant="body2">{program.duration}</Typography>
-                  </Grid>
-                </Grid>
-                
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button size="small" color="primary" sx={{ mr: 1 }}>
-                    Edit
-                  </Button>
-                  <Button size="small" color="error">
-                    Delete
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+      {/* Filter and Search */}
+      <Paper sx={{ p: 2, mb: 3, borderRadius: 2, boxShadow: 2 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Search Training Programs"
+              placeholder="Search by name or description..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
+              }}
+              variant="outlined"
+              size="small"
+            />
           </Grid>
-        ))}
-      </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth size="small" variant="outlined">
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={categoryFilter}
+                onChange={handleCategoryChange}
+                label="Category"
+              >
+                {categories.map(category => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
+      
+      {filteredPrograms.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">No matching training programs found</Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={3}>
+          {filteredPrograms.map(program => (
+            <Grid item xs={12} sm={6} md={4} key={program.id || program._id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ bgcolor: program.category?.includes('Fuel') || program.category === 'Safety' ? '#ff9f0a' : 'primary.main', color: 'white', p: 2 }}>
+                  <Typography variant="h6" noWrap>
+                    {program.name || program.title}
+                  </Typography>
+                  <Chip 
+                    label={program.category} 
+                    size="small" 
+                    sx={{ mt: 1, bgcolor: 'rgba(255,255,255,0.2)' }}
+                  />
+                </Box>
+                
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="body2" color="textSecondary" paragraph>
+                    {program.description}
+                  </Typography>
+                  
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="primary">Target Audience</Typography>
+                      <Typography variant="body2">{program.targetAudience || 'All Employees'}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="primary">Duration</Typography>
+                      <Typography variant="body2">{program.duration} hours</Typography>
+                    </Grid>
+                  </Grid>
+                  
+                  {program.objectives && program.objectives.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="primary">Learning Objectives</Typography>
+                      <List dense sx={{ pl: 2 }}>
+                        {program.objectives.slice(0, 2).map((objective, index) => (
+                          <ListItem key={index} sx={{ py: 0 }}>
+                            <ListItemText 
+                              primary={<Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Check sx={{ fontSize: 16, mr: 0.5, color: 'success.main' }} />
+                                {objective}
+                              </Typography>} 
+                            />
+                          </ListItem>
+                        ))}
+                        {program.objectives.length > 2 && (
+                          <ListItem sx={{ py: 0 }}>
+                            <ListItemText 
+                              primary={<Typography variant="body2" color="text.secondary">
+                                +{program.objectives.length - 2} more objectives
+                              </Typography>} 
+                            />
+                          </ListItem>
+                        )}
+                      </List>
+                    </Box>
+                  )}
+                </CardContent>
+                
+                <Divider />
+                
+                <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'background.paper' }}>
+                  <Tooltip title="View Material">
+                    <IconButton size="small" color="primary">
+                      <School fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <Box>
+                    <Tooltip title="Edit Program">
+                      <IconButton size="small" color="primary" sx={{ ml: 1 }}>
+                        <Edit fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Schedule Session">
+                      <IconButton size="small" color="secondary" sx={{ ml: 1 }}>
+                        <CalendarMonth fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Box>
   );
 };
