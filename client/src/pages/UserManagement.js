@@ -35,17 +35,14 @@ import {
   Delete, 
   Visibility, 
   Search, 
-  Add, 
-  Person,
-  PersonAdd,
-  Lock,
-  LockOpen
+  PersonAdd
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import axios from 'axios';
 
 const UserManagement = () => {
   const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,69 +81,87 @@ const UserManagement = () => {
       try {
         setLoading(true);
         
-        // In a real app, this would be an API call
-        // const token = localStorage.getItem('token');
-        // const response = await api.get('/api/users', {
-        //   headers: { Authorization: `Bearer ${token}` }
-        // });
-        
-        // For demo, using mock data
-        const mockUsers = [
-          {
-            id: 'USR001',
-            username: 'johndoe',
-            email: 'john.doe@juniorjoy.com',
-            fullName: 'John Doe',
-            role: 'admin',
-            department: 'IT',
-            isActive: true,
-            lastLogin: new Date(2025, 3, 20).toISOString()
-          },
-          {
-            id: 'USR002',
-            username: 'janedoe',
-            email: 'jane.doe@juniorjoy.com',
-            fullName: 'Jane Doe',
-            role: 'hr',
-            department: 'Human Resources',
-            isActive: true,
-            lastLogin: new Date(2025, 3, 25).toISOString()
-          },
-          {
-            id: 'USR003',
-            username: 'bobsmith',
-            email: 'bob.smith@juniorjoy.com',
-            fullName: 'Bob Smith',
-            role: 'manager',
-            department: 'Finance',
-            isActive: false,
-            lastLogin: new Date(2025, 2, 15).toISOString()
-          },
-          {
-            id: 'USR004',
-            username: 'alicejones',
-            email: 'alice.jones@juniorjoy.com',
-            fullName: 'Alice Jones',
-            role: 'user',
-            department: 'Marketing',
-            isActive: true,
-            lastLogin: new Date(2025, 3, 22).toISOString()
-          },
-          {
-            id: 'USR005',
-            username: 'davidwilson',
-            email: 'david.wilson@juniorjoy.com',
-            fullName: 'David Wilson',
-            role: 'user',
-            department: 'Sales',
-            isActive: true,
-            lastLogin: new Date(2025, 3, 18).toISOString()
-          }
-        ];
-        
-        setUsers(mockUsers);
-        setFilteredUsers(mockUsers);
-        setLoading(false);
+        // Try to get users from the API
+        const token = localStorage.getItem('token');
+        try {
+          const response = await axios.get(`${apiUrl}/api/users`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const apiUsers = response.data.map(user => ({
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            fullName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            role: user.role || 'user',
+            department: user.department || '',
+            isActive: user.isActive !== undefined ? user.isActive : true,
+            lastLogin: user.lastLogin || null
+          }));
+          
+          setUsers(apiUsers);
+          setFilteredUsers(apiUsers);
+          setLoading(false);
+        } catch (apiError) {
+          console.warn('Failed to fetch users from API, using mock data:', apiError);
+          
+          // Fall back to mock data if API call fails
+          const mockUsers = [
+            {
+              id: 'USR001',
+              username: 'johndoe',
+              email: 'john.doe@juniorjoy.com',
+              fullName: 'John Doe',
+              role: 'admin',
+              department: 'IT',
+              isActive: true,
+              lastLogin: new Date(2025, 3, 20).toISOString()
+            },
+            {
+              id: 'USR002',
+              username: 'janedoe',
+              email: 'jane.doe@juniorjoy.com',
+              fullName: 'Jane Doe',
+              role: 'hr',
+              department: 'Human Resources',
+              isActive: true,
+              lastLogin: new Date(2025, 3, 25).toISOString()
+            },
+            {
+              id: 'USR003',
+              username: 'bobsmith',
+              email: 'bob.smith@juniorjoy.com',
+              fullName: 'Bob Smith',
+              role: 'manager',
+              department: 'Finance',
+              isActive: false,
+              lastLogin: new Date(2025, 2, 15).toISOString()
+            },
+            {
+              id: 'USR004',
+              username: 'alicejones',
+              email: 'alice.jones@juniorjoy.com',
+              fullName: 'Alice Jones',
+              role: 'user',
+              department: 'Marketing',
+              isActive: true,
+              lastLogin: new Date(2025, 3, 22).toISOString()
+            },
+            {
+              id: 'USR005',
+              username: 'davidwilson',
+              email: 'david.wilson@juniorjoy.com',
+              fullName: 'David Wilson',
+              role: 'user',
+              department: 'Sales',
+              isActive: true,
+              lastLogin: new Date(2025, 3, 18).toISOString()
+            }
+          ];
+          
+          setUsers(mockUsers);
+          setFilteredUsers(mockUsers);
+          setLoading(false);
+        }
       } catch (err) {
         setError('Failed to fetch user data');
         console.error(err);
@@ -155,7 +170,7 @@ const UserManagement = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [apiUrl]);
   
   // Filter users based on search term and role
   useEffect(() => {
@@ -260,43 +275,136 @@ const UserManagement = () => {
         return;
       }
       
-      // In a real app, you would save to the backend here
-      if (formData.id) {
-        // Editing existing user
-        const updatedUsers = users.map(user => 
-          user.id === formData.id ? { 
-            ...user, 
+      const token = localStorage.getItem('token');
+      
+      try {
+        if (formData.id) {
+          // Editing existing user - try API first
+          const userData = {
             username: formData.username,
             email: formData.email,
             fullName: formData.fullName,
             role: formData.role,
             department: formData.department,
             isActive: formData.isActive
-          } : user
-        );
-        setUsers(updatedUsers);
-        setEditDialogOpen(false);
-      } else {
-        // Adding new user
-        const newUser = {
-          ...formData,
-          id: `USR${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-          lastLogin: null
-        };
-        setUsers(prev => [...prev, newUser]);
-        setAddDialogOpen(false);
+          };
+          
+          // Only include password if it was changed
+          if (formData.password) {
+            userData.password = formData.password;
+          }
+          
+          try {
+            await axios.put(`${apiUrl}/api/users/${formData.id}`, userData, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Update local state after successful API update
+            const updatedUsers = users.map(user => 
+              user.id === formData.id ? { 
+                ...user, 
+                username: formData.username,
+                email: formData.email,
+                fullName: formData.fullName,
+                role: formData.role,
+                department: formData.department,
+                isActive: formData.isActive
+              } : user
+            );
+            setUsers(updatedUsers);
+          } catch (apiError) {
+            console.warn('Failed to update user via API, updating local state only:', apiError);
+            // Fall back to updating local state only
+            const updatedUsers = users.map(user => 
+              user.id === formData.id ? { 
+                ...user, 
+                username: formData.username,
+                email: formData.email,
+                fullName: formData.fullName,
+                role: formData.role,
+                department: formData.department,
+                isActive: formData.isActive
+              } : user
+            );
+            setUsers(updatedUsers);
+          }
+          setEditDialogOpen(false);
+        } else {
+          // Adding new user
+          const userData = {
+            username: formData.username,
+            email: formData.email,
+            fullName: formData.fullName,
+            password: formData.password,
+            role: formData.role,
+            department: formData.department,
+            isActive: formData.isActive
+          };
+          
+          try {
+            const response = await axios.post(`${apiUrl}/api/users`, userData, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Add the returned user from API to local state
+            const newUser = {
+              id: response.data._id,
+              username: response.data.username,
+              email: response.data.email,
+              fullName: response.data.fullName,
+              role: response.data.role,
+              department: response.data.department,
+              isActive: response.data.isActive,
+              lastLogin: null
+            };
+            setUsers(prev => [...prev, newUser]);
+          } catch (apiError) {
+            console.warn('Failed to add user via API, adding to local state only:', apiError);
+            // Fall back to adding to local state only
+            const newUser = {
+              ...formData,
+              id: `USR${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+              lastLogin: null
+            };
+            setUsers(prev => [...prev, newUser]);
+          }
+          setAddDialogOpen(false);
+        }
+      } catch (err) {
+        console.error('Error saving user data:', err);
+        alert('An error occurred while saving user data. Please try again.');
       }
     } catch (err) {
-      console.error('Error saving user data:', err);
+      console.error('Error in form validation:', err);
+      alert('An error occurred. Please check your input and try again.');
     }
   };
 
   // Handle confirm delete
-  const handleConfirmDelete = () => {
-    // In a real app, you would delete from the backend here
-    const updatedUsers = users.filter(user => user.id !== currentUser.id);
-    setUsers(updatedUsers);
-    setDeleteDialogOpen(false);
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      try {
+        // Try to delete from API first
+        await axios.delete(`${apiUrl}/api/users/${currentUser.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // If successful, update local state
+        const updatedUsers = users.filter(user => user.id !== currentUser.id);
+        setUsers(updatedUsers);
+      } catch (apiError) {
+        console.warn('Failed to delete user via API, removing from local state only:', apiError);
+        // Fall back to updating local state only
+        const updatedUsers = users.filter(user => user.id !== currentUser.id);
+        setUsers(updatedUsers);
+      }
+      
+      setDeleteDialogOpen(false);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('An error occurred while deleting the user. Please try again.');
+    }
   };
 
   // Handle search

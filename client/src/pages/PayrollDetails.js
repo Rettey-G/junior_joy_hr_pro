@@ -41,7 +41,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const PayrollDetails = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Removed unused variable
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);

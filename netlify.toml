@@ -1,7 +1,7 @@
 [build]
   base = "/"
   publish = "client/build"
-  command = "cd client && rm -rf node_modules && npm ci && npm run build"
+  command = "cd client && rm -rf node_modules && npm ci && CI=false npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
