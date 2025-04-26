@@ -37,7 +37,7 @@ import axios from 'axios';
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, LineElement, PointElement);
 
-const AnalyticsDashboard = ({ allEmployeeData }) => {
+const AnalyticsDashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -80,26 +80,34 @@ const AnalyticsDashboard = ({ allEmployeeData }) => {
   }, [apiUrl]);
   
   // Generate analytics from local employee data if API fails
-  const generateLocalAnalytics = () => {
+  const generateLocalAnalytics = async () => {
     try {
-      if (!allEmployeeData || !allEmployeeData.length) {
+      // Fetch employee data directly
+      const token = localStorage.getItem('token');
+      const employeeResponse = await axios.get(`${apiUrl}/api/employees`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const employeeData = employeeResponse.data;
+      
+      if (!employeeData || !employeeData.length) {
         throw new Error('No employee data available');
       }
       
       // Calculate total employees
-      const totalEmployees = allEmployeeData.length;
-      const activeEmployees = allEmployeeData.length; // Assuming all are active
+      const totalEmployees = employeeData.length;
+      const activeEmployees = employeeData.filter(emp => emp.active !== false).length;
       
       // Calculate gender distribution
       const genderDistribution = {
-        male: allEmployeeData.filter(emp => emp.gender === 'Male').length,
-        female: allEmployeeData.filter(emp => emp.gender === 'Female').length,
-        other: allEmployeeData.filter(emp => emp.gender !== 'Male' && emp.gender !== 'Female').length
+        male: employeeData.filter(emp => emp.gender === 'Male').length,
+        female: employeeData.filter(emp => emp.gender === 'Female').length,
+        other: employeeData.filter(emp => emp.gender !== 'Male' && emp.gender !== 'Female').length
       };
       
       // Calculate department distribution
       const deptMap = new Map();
-      allEmployeeData.forEach(emp => {
+      employeeData.forEach(emp => {
         if (emp.department) {
           const dept = emp.department;
           deptMap.set(dept, (deptMap.get(dept) || 0) + 1);
@@ -110,7 +118,7 @@ const AnalyticsDashboard = ({ allEmployeeData }) => {
       
       // Calculate tenure metrics
       const now = new Date();
-      const tenures = allEmployeeData.map(emp => {
+      const tenures = employeeData.map(emp => {
         const joinedDate = new Date(emp.joinedDate);
         return Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24)); // Tenure in days
       }).filter(tenure => !isNaN(tenure));
@@ -128,7 +136,7 @@ const AnalyticsDashboard = ({ allEmployeeData }) => {
       
       // Calculate nationality distribution
       const nationalityMap = new Map();
-      allEmployeeData.forEach(emp => {
+      employeeData.forEach(emp => {
         if (emp.nationality) {
           const nationality = emp.nationality;
           nationalityMap.set(nationality, (nationalityMap.get(nationality) || 0) + 1);
@@ -321,307 +329,417 @@ const AnalyticsDashboard = ({ allEmployeeData }) => {
       {/* Key Metrics */}
       <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ height: '100%' }}>
-            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <PeopleOutline color="primary" sx={{ mr: 1 }} />
-                <Typography variant="subtitle2" color="textSecondary">
-                  Total Employees
-                </Typography>
+        >
+          Daily
+        </Button>
+        <Button 
+          onClick={() => handleTimePeriodChange('weekly')}
+          variant={timePeriod === 'weekly' ? 'contained' : 'outlined'}
+        >
+          Weekly
+        </Button>
+        <Button 
+          onClick={() => handleTimePeriodChange('monthly')}
+          variant={timePeriod === 'monthly' ? 'contained' : 'outlined'}
+        >
+          Monthly
+        </Button>
+      </ButtonGroup>
+    </Box>
+    
+    {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+        <Typography variant="body2" sx={{ ml: 2 }}>Loading analytics...</Typography>
+      </Box>
+    ) : error ? (
+      <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+    ) : (
+      <>
+        {/* Key Metrics */}
+        <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 3 }}>
+          <Grid item xs={6} sm={3}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                <PeopleOutline color="primary" fontSize="large" />
               </Box>
-              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
                 {analyticsData.totalEmployees || 0}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <Chip 
-                  size="small" 
-                  color="success" 
-                  label={`+${analyticsData.newHires || 0} New`} 
-                  sx={{ mr: 1, height: 20 }}
+              <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
+                Total Employees
+              </Typography>
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={6} sm={3}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                <TrendingUp color="primary" fontSize="large" />
+              </Box>
+              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+                {analyticsData.newHires || 0}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
+                New Hires (30d)
+              </Typography>
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={6} sm={3}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                <AttachMoney color="success" fontSize="large" />
+              </Box>
+              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+                ${analyticsData.salaryMetrics?.average?.toFixed(0) || '2k'}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
+                Avg. Salary
+              </Typography>
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={6} sm={3}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                <Business color="primary" fontSize="large" />
+              </Box>
+              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+                {Object.keys(analyticsData.departmentDistribution || {}).length || 6}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center' }}>
+                Departments
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Distribution Charts */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Business fontSize="small" sx={{ mr: 1 }} />
+                <Typography variant="h6">Department Distribution</Typography>
+              </Box>
+              <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Doughnut 
+                  data={departmentData} 
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          font: {
+                            size: 10
+                          }
+                        }
+                      }
+                    }
+                  }}
                 />
-                {analyticsData.separations > 0 && (
-                  <Chip 
-                    size="small" 
-                    color="error" 
-                    label={`-${analyticsData.separations} Left`} 
-                    sx={{ height: 20 }}
-                  />
-                )}
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ height: '100%' }}>
-            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AccessTime color="secondary" sx={{ mr: 1 }} />
-                <Typography variant="subtitle2" color="textSecondary">
-                  Avg. Tenure
-                </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Public fontSize="small" sx={{ mr: 1 }} />
+                <Typography variant="h6">Nationality Distribution</Typography>
               </Box>
-              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                {Math.floor((analyticsData.tenureMetrics?.averageTenure || 0) / 365)} yrs
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {Math.floor(((analyticsData.tenureMetrics?.averageTenure || 0) % 365) / 30)} months
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ height: '100%' }}>
-            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <TrendingUp color="error" sx={{ mr: 1 }} />
-                <Typography variant="subtitle2" color="textSecondary">
-                  Turnover Rate
-                </Typography>
+              <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Doughnut 
+                  data={nationalityData} 
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          font: {
+                            size: 10
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
               </Box>
-              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                {(analyticsData.turnoverRate * 100 || 0).toFixed(1)}%
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {timePeriod === 'monthly' ? 'Last 30 Days' : 
-                 timePeriod === 'weekly' ? 'Last 7 Days' : 'Today'}
-              </Typography>
-            </CardContent>
-          </Card>
+            </Paper>
+          </Grid>
         </Grid>
-        
-        <Grid item xs={6} sm={3}>
-          <Card variant="outlined" sx={{ height: '100%' }}>
-            <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AttachMoney color="success" sx={{ mr: 1 }} />
-                <Typography variant="subtitle2" color="textSecondary">
-                  Avg. Salary
-                </Typography>
+
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Wc fontSize="small" sx={{ mr: 1 }} />
+                <Typography variant="h6">Gender Distribution</Typography>
               </Box>
-              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                ${analyticsData.salaryMetrics?.average?.toFixed(0) || 'N/A'}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Range: ${analyticsData.salaryMetrics?.min || 0} - ${analyticsData.salaryMetrics?.max || 0}
-              </Typography>
-            </CardContent>
-          </Card>
+              <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Doughnut 
+                  data={genderData} 
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          font: {
+                            size: 10
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Business fontSize="small" sx={{ mr: 1 }} />
+                <Typography variant="h6">Worksite Distribution</Typography>
+              </Box>
+              <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Doughnut 
+                  data={worksiteData} 
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                        labels: {
+                          font: {
+                            size: 10
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      </>
+    )}
+    
+    {/* Tabs for different charts */}
+    <Paper variant="outlined" sx={{ mb: 4 }}>
+      <Tabs 
+        value={tabValue} 
+        onChange={handleTabChange} 
+        indicatorColor="primary"
+        textColor="primary"
+        variant={isMobile ? "scrollable" : "fullWidth"}
+        scrollButtons={isMobile ? "auto" : false}
+      >
+        <Tab label="Demographics" icon={<Wc />} iconPosition="start" />
+        <Tab label="Departments" icon={<Business />} iconPosition="start" />
+        <Tab label="Tenure" icon={<AccessTime />} iconPosition="start" />
+        <Tab label="Nationality" icon={<Public />} iconPosition="start" />
+      </Tabs>
       
-      {/* Tabs for different charts */}
-      <Paper variant="outlined" sx={{ mb: 4 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange} 
-          indicatorColor="primary"
-          textColor="primary"
-          variant={isMobile ? "scrollable" : "fullWidth"}
-          scrollButtons={isMobile ? "auto" : false}
-        >
-          <Tab label="Demographics" icon={<Wc />} iconPosition="start" />
-          <Tab label="Departments" icon={<Business />} iconPosition="start" />
-          <Tab label="Tenure" icon={<AccessTime />} iconPosition="start" />
-          <Tab label="Nationality" icon={<Public />} iconPosition="start" />
-        </Tabs>
-        
-        <Box sx={{ p: 3 }}>
-          {tabValue === 0 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Gender Distribution
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Doughnut 
-                      data={genderData} 
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: 'bottom'
-                          }
+      <Box sx={{ p: 3 }}>
+        {tabValue === 0 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Gender Distribution
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={genderData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
                         }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Gender Ratio Analysis:
-                      </Typography>
-                      <Typography variant="body2" paragraph>
-                        The gender distribution shows {genderData.datasets[0].data[0] > genderData.datasets[0].data[1] ? 'more male than female' : 'more female than male'} employees. 
-                        {genderData.datasets[0].data[0] === genderData.datasets[0].data[1] && 'an equal distribution between male and female employees.'}
-                      </Typography>
-                      
-                      <Typography variant="body2">
-                        • Male: {genderData.datasets[0].data[0]} employees ({((genderData.datasets[0].data[0] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                      </Typography>
-                      <Typography variant="body2">
-                        • Female: {genderData.datasets[0].data[1]} employees ({((genderData.datasets[0].data[1] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                      </Typography>
-                      {genderData.datasets[0].data[2] > 0 && (
-                        <Typography variant="body2">
-                          • Other: {genderData.datasets[0].data[2]} employees ({((genderData.datasets[0].data[2] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                </Grid>
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
-            </Box>
-          )}
-          
-          {tabValue === 1 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Department Distribution
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={7}>
-                  <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Bar 
-                      data={departmentData} 
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            display: false
-                          }
-                        },
-                        scales: {
-                          y: {
-                            beginAtZero: true
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Department Breakdown:
-                    </Typography>
-                    <Box sx={{ maxHeight: 210, overflowY: 'auto' }}>
-                      {departmentLabels.map((dept, index) => (
-                        <Box key={dept} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">
-                            • {dept}
-                          </Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            {departmentValues[index]} ({((departmentValues[index] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-          
-          {tabValue === 2 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Tenure Distribution
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Pie 
-                      data={tenureData} 
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: 'bottom'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Employee Tenure Analysis:
+                      Gender Ratio Analysis:
                     </Typography>
                     <Typography variant="body2" paragraph>
-                      The average employee tenure is {Math.floor((analyticsData.tenureMetrics?.averageTenure || 0) / 365)} years and {Math.floor(((analyticsData.tenureMetrics?.averageTenure || 0) % 365) / 30)} months.
+                      The gender distribution shows {genderData.datasets[0].data[0] > genderData.datasets[0].data[1] ? 'more male than female' : 'more female than male'} employees. 
+                      {genderData.datasets[0].data[0] === genderData.datasets[0].data[1] && 'an equal distribution between male and female employees.'}
                     </Typography>
                     
                     <Typography variant="body2">
-                      • Less than 1 year: {tenureData.datasets[0].data[0]} employees ({((tenureData.datasets[0].data[0] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                      • Male: {genderData.datasets[0].data[0]} employees ({((genderData.datasets[0].data[0] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
                     </Typography>
                     <Typography variant="body2">
-                      • 1-3 years: {tenureData.datasets[0].data[1]} employees ({((tenureData.datasets[0].data[1] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                      • Female: {genderData.datasets[0].data[1]} employees ({((genderData.datasets[0].data[1] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
                     </Typography>
-                    <Typography variant="body2">
-                      • 3-5 years: {tenureData.datasets[0].data[2]} employees ({((tenureData.datasets[0].data[2] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                    </Typography>
-                    <Typography variant="body2">
-                      • More than 5 years: {tenureData.datasets[0].data[3]} employees ({((tenureData.datasets[0].data[3] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                    </Typography>
+                    {genderData.datasets[0].data[2] > 0 && (
+                      <Typography variant="body2">
+                        • Other: {genderData.datasets[0].data[2]} employees ({((genderData.datasets[0].data[2] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                      </Typography>
+                    )}
                   </Box>
-                </Grid>
+                </Box>
               </Grid>
-            </Box>
-          )}
-          
-          {tabValue === 3 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Nationality Distribution
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Doughnut 
-                      data={nationalityData} 
-                      options={{
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: 'bottom'
-                          }
+            </Grid>
+          </Box>
+        )}
+        
+        {tabValue === 1 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Department Distribution
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={7}>
+                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Bar 
+                    data={departmentData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          display: false
                         }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Nationality Breakdown:
-                    </Typography>
-                    <Box sx={{ maxHeight: 210, overflowY: 'auto' }}>
-                      {nationalityLabels.map((nationality, index) => (
-                        <Box key={nationality} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2">
-                            • {nationality}
-                          </Typography>
-                          <Typography variant="body2" fontWeight="medium">
-                            {nationalityValues[index]} ({((nationalityValues[index] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                </Grid>
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true
+                        }
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
-            </Box>
-          )}
-        </Box>
-      </Paper>
-    </Box>
-  );
-};
+              <Grid item xs={12} md={5}>
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Department Breakdown:
+                  </Typography>
+                  <Box sx={{ maxHeight: 210, overflowY: 'auto' }}>
+                    {departmentLabels.map((dept, index) => (
+                      <Box key={dept} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">
+                          • {dept}
+                        </Typography>
+                        <Typography variant="body2" fontWeight="medium">
+                          {departmentValues[index]} ({((departmentValues[index] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+        
+        {tabValue === 2 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Tenure Distribution
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Pie 
+                    data={tenureData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Employee Tenure Analysis:
+                  </Typography>
+                  <Typography variant="body2" paragraph>
+                    The average employee tenure is {Math.floor((analyticsData.tenureMetrics?.averageTenure || 0) / 365)} years and {Math.floor(((analyticsData.tenureMetrics?.averageTenure || 0) % 365) / 30)} months.
+                  </Typography>
+                  
+                  <Typography variant="body2">
+                    • Less than 1 year: {tenureData.datasets[0].data[0]} employees ({((tenureData.datasets[0].data[0] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                  </Typography>
+                  <Typography variant="body2">
+                    • 1-3 years: {tenureData.datasets[0].data[1]} employees ({((tenureData.datasets[0].data[1] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                  </Typography>
+                  <Typography variant="body2">
+                    • 3-5 years: {tenureData.datasets[0].data[2]} employees ({((tenureData.datasets[0].data[2] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                  </Typography>
+                  <Typography variant="body2">
+                    • More than 5 years: {tenureData.datasets[0].data[3]} employees ({((tenureData.datasets[0].data[3] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+        
+        {tabValue === 3 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Nationality Distribution
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={nationalityData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Nationality Breakdown:
+                  </Typography>
+                  <Box sx={{ maxHeight: 210, overflowY: 'auto' }}>
+                    {nationalityLabels.map((nationality, index) => (
+                      <Box key={nationality} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">
+                          • {nationality}
+                        </Typography>
+                        <Typography variant="body2" fontWeight="medium">
+                          {nationalityValues[index]} ({((nationalityValues[index] / analyticsData.totalEmployees) * 100).toFixed(1)}%)
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        )}
+      </Box>
+    </Paper>
+  </Box>
+);
 
 export default AnalyticsDashboard;
