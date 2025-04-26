@@ -205,7 +205,7 @@ const LeavePlan = () => {
   // Initial data load
   useEffect(() => {
     fetchLeaves();
-    fetchEmployees();
+    fetchData(); // Use fetchData instead of fetchEmployees
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
