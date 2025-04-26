@@ -527,19 +527,20 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
-      {error && (
-        <Alert severity="warning" sx={{ mb: 2, mx: isMobile ? 0 : 2 }}>
-          {error}
-        </Alert>
-      )}
-      
-      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom sx={{ px: isMobile ? 1 : 0 }}>
-        HR Dashboard
-      </Typography>
-      
-      {/* Stats Cards */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+    <Container maxWidth="lg">
+      <Box sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4 }}>
+        {error && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        <Typography variant={isMobile ? "h5" : "h4"} gutterBottom sx={{ textAlign: "left" }}>
+          HR Dashboard
+        </Typography>
+        
+        {/* Stats Cards */}
+        <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={6} sm={6} md={3}>
           <Card elevation={3} sx={{ height: '100%' }}>
             <CardContent sx={{ p: isMobile ? 1.5 : 2 }}>
@@ -598,7 +599,7 @@ const Dashboard = () => {
       </Grid>
       
       {/* Distribution Charts */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
@@ -652,7 +653,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
       
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: isMobile ? 2 : 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
@@ -743,7 +744,7 @@ const Dashboard = () => {
       </Grid>
       
       {/* Turnover Chart */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: isMobile ? 2 : 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -789,7 +790,7 @@ const Dashboard = () => {
       </Grid>
       
       {/* Activity and Events */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, px: isMobile ? 1 : 0 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ height: '100%' }}>
             <CardHeader 
@@ -945,6 +946,7 @@ const Dashboard = () => {
         </>
       )}
     </Box>
+    </Container>
   );
 };
 
