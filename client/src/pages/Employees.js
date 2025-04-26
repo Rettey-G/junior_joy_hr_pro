@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import allEmployeeData from '../data/allEmployeeData';
+import { CSVLink } from 'react-csv';
+import { getProfileImageByGender } from '../utils/placeholderImages';
 
 import {
   Container,
@@ -42,7 +44,7 @@ import {
   CardMedia,
   CardActions
 } from '@mui/material';
-import { Add, Edit, Delete, FilterList, PhotoCamera, Person, PersonAdd, Visibility } from '@mui/icons-material';
+import { Add, Edit, Delete, FilterList, PhotoCamera, Person, PersonAdd, Visibility, GetApp } from '@mui/icons-material';
 import { format } from 'date-fns';
 
 const Employees = () => {
@@ -85,7 +87,9 @@ const Employees = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     department: '',
-    workSite: ''
+    workSite: '',
+    nationality: '',
+    designation: ''
   });
 
   // Check if user is admin
@@ -107,6 +111,14 @@ const Employees = () => {
       
       if (filters.workSite) {
         filteredData = filteredData.filter(emp => emp.workSite === filters.workSite);
+      }
+      
+      if (filters.nationality) {
+        filteredData = filteredData.filter(emp => emp.nationality === filters.nationality);
+      }
+      
+      if (filters.designation) {
+        filteredData = filteredData.filter(emp => emp.designation === filters.designation);
       }
       
       // Set the employee data
@@ -287,11 +299,13 @@ const Employees = () => {
   const resetFilters = () => {
     setFilters({
       department: '',
-      workSite: ''
+      workSite: '',
+      nationality: '',
+      designation: ''
     });
   };
 
-  // Get unique departments for filter dropdown
+  // Get unique departments
   const getDepartments = () => {
     const uniqueDepartments = new Set();
     employees.forEach(employee => {
@@ -322,6 +336,35 @@ const Employees = () => {
       }
     });
     return Array.from(uniqueNationalities).sort();
+  };
+
+  // Get unique designations
+  const getDesignations = () => {
+    const uniqueDesignations = new Set();
+    employees.forEach(employee => {
+      if (employee.designation) {
+        uniqueDesignations.add(employee.designation);
+      }
+    });
+    return Array.from(uniqueDesignations).sort();
+  };
+
+  // Prepare data for CSV export
+  const prepareCsvData = () => {
+    return employees.map(emp => ({
+      'Emp No': emp.empNo,
+      'Name': emp.name,
+      'ID Number': emp.idNumber,
+      'Gender': emp.gender,
+      'Nationality': emp.nationality,
+      'Date of Birth': formatDate(emp.dateOfBirth),
+      'Mobile Number': emp.mobileNumber,
+      'Work Number': emp.workNo,
+      'Designation': emp.designation,
+      'Department': emp.department,
+      'Work Site': emp.workSite,
+      'Joined Date': formatDate(emp.joinedDate)
+    }));
   };
 
   return (
@@ -381,7 +424,7 @@ const Employees = () => {
               <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom={!isMobile}>
                 Filters
               </Typography>
-              {filters.department || filters.workSite ? (
+              {filters.department || filters.workSite || filters.nationality || filters.designation ? (
                 <Chip 
                   label="Clear All" 
                   size="small" 
@@ -425,6 +468,38 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+                  <InputLabel>Nationality</InputLabel>
+                  <Select
+                    name="nationality"
+                    value={filters.nationality}
+                    label="Nationality"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">All Nationalities</MenuItem>
+                    {getNationalities().map(nationality => (
+                      <MenuItem key={nationality} value={nationality}>{nationality}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+                  <InputLabel>Designation</InputLabel>
+                  <Select
+                    name="designation"
+                    value={filters.designation}
+                    label="Designation"
+                    onChange={handleFilterChange}
+                  >
+                    <MenuItem value="">All Designations</MenuItem>
+                    {getDesignations().map(designation => (
+                      <MenuItem key={designation} value={designation}>{designation}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
               {!isMobile && (
                 <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
                   <Button 
@@ -439,7 +514,7 @@ const Employees = () => {
             </Grid>
             
             {/* Applied filters */}
-            {(filters.department || filters.workSite) && (
+            {(filters.department || filters.workSite || filters.nationality || filters.designation) && (
               <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {filters.department && (
                   <Chip 
@@ -455,13 +530,27 @@ const Employees = () => {
                     onDelete={() => handleFilterChange({ target: { name: 'workSite', value: '' } })} 
                   />
                 )}
+                {filters.nationality && (
+                  <Chip 
+                    label={`Nationality: ${filters.nationality}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange({ target: { name: 'nationality', value: '' } })} 
+                  />
+                )}
+                {filters.designation && (
+                  <Chip 
+                    label={`Designation: ${filters.designation}`} 
+                    size="small" 
+                    onDelete={() => handleFilterChange({ target: { name: 'designation', value: '' } })} 
+                  />
+                )}
               </Box>
             )}
           </Paper>
         )}
 
         {/* Active Filters Indication */}
-        {!filterOpen && (filters.department || filters.workSite) && (
+        {!filterOpen && (filters.department || filters.workSite || filters.nationality || filters.designation) && (
           <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             <Typography variant="caption" sx={{ mr: 1, alignSelf: 'center' }}>
               Active filters:
@@ -484,6 +573,24 @@ const Employees = () => {
                 onDelete={() => handleFilterChange({ target: { name: 'workSite', value: '' } })} 
               />
             )}
+            {filters.nationality && (
+              <Chip 
+                label={`${filters.nationality}`} 
+                size="small" 
+                color="success"
+                variant="outlined"
+                onDelete={() => handleFilterChange({ target: { name: 'nationality', value: '' } })} 
+              />
+            )}
+            {filters.designation && (
+              <Chip 
+                label={`${filters.designation}`} 
+                size="small" 
+                color="error"
+                variant="outlined"
+                onDelete={() => handleFilterChange({ target: { name: 'designation', value: '' } })} 
+              />
+            )}
           </Box>
         )}
         
@@ -502,75 +609,118 @@ const Employees = () => {
           // Mobile Card View
           <Stack spacing={2}>
             {employees.map((employee) => (
-              <Card key={employee._id} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: 'primary.light', alignItems: 'center' }}>
+              <Card key={employee.empNo} elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: employee.gender === 'Female' ? 'pink' : 'primary.light', alignItems: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {employee.image ? (
-                      <Avatar src={employee.image} alt={employee.name} sx={{ width: 50, height: 50, border: '2px solid white' }} />
+                      <Avatar 
+                        src={employee.image} 
+                        alt={employee.name} 
+                        sx={{ 
+                          width: 60, 
+                          height: 60, 
+                          border: '3px solid white',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                        }} 
+                      />
                     ) : (
-                      <Avatar sx={{ width: 50, height: 50, bgcolor: 'primary.main', border: '2px solid white' }}>
+                      <Avatar 
+                        src={getProfileImageByGender(employee.gender)}
+                        sx={{ 
+                          width: 60, 
+                          height: 60, 
+                          bgcolor: employee.gender === 'Female' ? '#ec407a' : '#1976d2', 
+                          border: '3px solid white',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                        }}
+                      >
                         {employee.name.charAt(0)}
                       </Avatar>
                     )}
                     <Box sx={{ ml: 2 }}>
                       <Typography variant="subtitle1" fontWeight="bold" color="white">{employee.name}</Typography>
-                      <Chip size="small" label={employee.empNo} sx={{ backgroundColor: 'white', mt: 0.5 }} />
+                      <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                        <Chip size="small" label={employee.empNo} sx={{ backgroundColor: 'white', height: 20, fontSize: '0.7rem' }} />
+                        <Chip size="small" label={employee.nationality} sx={{ backgroundColor: 'rgba(255,255,255,0.7)', height: 20, fontSize: '0.7rem' }} />
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
                 
                 <CardContent sx={{ pb: 1 }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'primary.main', borderBottom: '1px solid #eee', pb: 0.5 }}>
+                      {employee.designation} • {employee.department}
+                    </Typography>
+                  </Box>
                   <Grid container spacing={1.5}>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">ID Number</Typography>
-                      <Typography variant="body2" fontWeight="medium">{employee.idNumber}</Typography>
+                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">ID Number</Typography>
+                        <Typography variant="body2" fontWeight="medium">{employee.idNumber}</Typography>
+                      </Paper>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Department</Typography>
-                      <Typography variant="body2" fontWeight="medium" noWrap>{employee.department}</Typography>
+                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">Work Site</Typography>
+                        <Typography variant="body2" fontWeight="medium">{employee.workSite}</Typography>
+                      </Paper>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Designation</Typography>
-                      <Typography variant="body2" fontWeight="medium" noWrap>{employee.designation}</Typography>
+                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">Mobile</Typography>
+                        <Typography variant="body2" fontWeight="medium" noWrap>{employee.mobileNumber || 'N/A'}</Typography>
+                      </Paper>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Work Site</Typography>
-                      <Typography variant="body2" fontWeight="medium">{employee.workSite}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Salary (USD)</Typography>
-                      <Typography variant="body2" fontWeight="medium">${employee.salaryUSD || 0}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="caption" color="textSecondary">Salary (MVR)</Typography>
-                      <Typography variant="body2" fontWeight="medium">{employee.salaryMVR || 0} MVR</Typography>
+                      <Paper variant="outlined" sx={{ p: 1, bgcolor: 'background.paper' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">Joined</Typography>
+                        <Typography variant="body2" fontWeight="medium">{formatDate(employee.joinedDate)}</Typography>
+                      </Paper>
                     </Grid>
                   </Grid>
                 </CardContent>
                 
                 <Divider />
                 
-                <CardActions sx={{ justifyContent: 'flex-end', p: 1 }}>
-                  <Tooltip title="View Details">
-                    <IconButton size="small" color="primary">
-                      <Visibility fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  
-                  {isAdmin && (
-                    <>
-                      <Tooltip title="Edit Employee">
-                        <IconButton size="small" color="primary" onClick={() => handleOpenDialog(employee)}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Employee">
-                        <IconButton size="small" color="error" onClick={() => handleDeleteEmployee(employee._id)}>
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  )}
+                <CardActions sx={{ justifyContent: 'space-between', p: 1, bgcolor: '#f8f8f8' }}>
+                  <Box>
+                    <Chip 
+                      variant="outlined" 
+                      size="small" 
+                      label={formatDate(employee.joinedDate)}
+                      sx={{ fontSize: '0.7rem', height: '24px' }} 
+                    />
+                  </Box>
+                  <Box>
+                    <Button 
+                      size="small" 
+                      startIcon={<Visibility fontSize="small" />}
+                      onClick={() => handleOpenDialog(employee)}
+                    >
+                      View
+                    </Button>
+                    
+                    {isAdmin && (
+                      <>
+                        <Button 
+                          size="small" 
+                          startIcon={<Edit fontSize="small" />}
+                          onClick={() => handleOpenDialog(employee)}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          size="small" 
+                          color="error" 
+                          startIcon={<Delete fontSize="small" />}
+                          onClick={() => handleDeleteEmployee(employee.empNo)}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </Box>
                 </CardActions>
               </Card>
             ))}
