@@ -340,42 +340,7 @@ const LeavePlan = () => {
     total: filteredLeaves.length
   };
 
-  // Calculate leave balances for the selected employee
-  const getLeaveBalances = () => {
-    if (!selectedEmployee) return {};
-    
-    const employee = employees.find(emp => emp.id === selectedEmployee);
-    if (!employee) return {};
-    
-    const balances = {};
-    leaveTypes.forEach(type => {
-      // Get entitlement
-      const entitlement = calculateLeaveBalance(employee, type.value);
-      
-      // Calculate used leaves
-      const usedLeaves = leaveRecords
-        .filter(leave => 
-          leave.employeeId === employee.id && 
-          leave.leaveType === type.value && 
-          leave.status === 'approved'
-        )
-        .reduce((total, leave) => total + leave.days, 0);
-      
-      // Calculate balance
-      balances[type.value] = {
-        entitlement,
-        used: usedLeaves,
-        remaining: entitlement - usedLeaves
-      };
-    });
-    
-    return balances;
-  };
-  
-  // Handle leave balance dialog close
-  const handleLeaveBalanceDialogClose = () => {
-    setLeaveBalanceDialogOpen(false);
-  };
+  // This comment replaces the removed handleLeaveBalanceDialogClose function which was unused
   
   // Handle public holiday dialog
   const handlePublicHolidayDialogOpen = () => {
