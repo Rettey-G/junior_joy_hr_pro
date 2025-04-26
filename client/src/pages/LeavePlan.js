@@ -124,11 +124,16 @@ const calculateLeaveBalance = (employee, leaveType) => {
 
 const LeavePlan = () => {
   const [leaves, setLeaves] = useState(mockLeaves);
+  const [leaveRecords, setLeaveRecords] = useState(mockLeaves); // For balance calculation
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [leaveBalances, setLeaveBalances] = useState({});
+  const [leaveBalanceDialogOpen, setLeaveBalanceDialogOpen] = useState(false);
+  const [publicHolidayDialogOpen, setPublicHolidayDialogOpen] = useState(false);
   const [filters, setFilters] = useState({
     department: '',
     status: '',
