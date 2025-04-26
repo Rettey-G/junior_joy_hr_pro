@@ -179,43 +179,212 @@ const Training = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        let hasError = false;
         
-        // Fetch trainers
-        const trainersResponse = await axios.get(`${apiUrl}/api/trainers`);
-        if (trainersResponse.data) {
-          setTrainers(trainersResponse.data);
+        // Mock data for fallback
+        const mockTrainers = [
+          {
+            id: 'TR001',
+            name: 'Dr. Sarah Johnson',
+            email: 'sarah.johnson@juniorjoy.com',
+            phone: '555-123-4567',
+            specialization: 'Leadership Development',
+            bio: 'PhD in Organizational Psychology with 10+ years of corporate training experience',
+            isExternal: false
+          },
+          {
+            id: 'TR002',
+            name: 'Michael Chen',
+            email: 'michael.chen@juniorjoy.com',
+            phone: '555-987-6543',
+            specialization: 'Technical Skills',
+            bio: 'Senior Developer and Certified Technical Trainer',
+            isExternal: false
+          },
+          {
+            id: 'TR003',
+            name: 'Emma Rodriguez',
+            email: 'emma@trainingpro.com',
+            phone: '555-456-7890',
+            specialization: 'Soft Skills & Communication',
+            bio: 'Communication coach with expertise in team dynamics',
+            isExternal: true
+          },
+          {
+            id: 'TR004',
+            name: 'Ahmed Hassan',
+            email: 'ahmed@fuelsafetytraining.com',
+            phone: '555-789-0123',
+            specialization: 'Fuel Safety & Handling',
+            bio: 'Certified Safety Specialist with 15 years experience in fuel industry',
+            isExternal: true
+          }
+        ];
+        
+        const mockPrograms = [
+          {
+            id: 'TP001',
+            title: 'Leadership Essentials',
+            description: 'Fundamental leadership skills for new managers',
+            category: 'Leadership',
+            duration: '16 hours',
+            skillLevel: 'intermediate',
+            materials: 'Workbooks provided',
+            prerequisites: 'Minimum 1 year management experience'
+          },
+          {
+            id: 'TP002',
+            title: 'Customer Service Excellence',
+            description: 'Strategies for exceptional customer experiences',
+            category: 'Customer Service',
+            duration: '8 hours',
+            skillLevel: 'beginner',
+            materials: 'Digital handbook',
+            prerequisites: 'None'
+          },
+          {
+            id: 'TP003',
+            title: 'Advanced Fuel Handling Safety',
+            description: 'Comprehensive safety protocols for fuel handling and storage',
+            category: 'Safety',
+            duration: '24 hours',
+            skillLevel: 'advanced',
+            materials: 'Safety manual, protective equipment for demonstrations',
+            prerequisites: 'Basic safety training'
+          },
+          {
+            id: 'TP004',
+            title: 'Environmental Compliance in Fuel Operations',
+            description: 'Understanding regulations and best practices for environmental protection',
+            category: 'Compliance',
+            duration: '16 hours',
+            skillLevel: 'intermediate',
+            materials: 'Regulatory guidelines, case studies',
+            prerequisites: 'Basic knowledge of fuel operations'
+          },
+          {
+            id: 'TP005',
+            title: 'Fuel Quality Management',
+            description: 'Techniques for testing, maintaining and ensuring fuel quality standards',
+            category: 'Technical',
+            duration: '12 hours',
+            skillLevel: 'intermediate',
+            materials: 'Testing equipment demos, quality control handbook',
+            prerequisites: 'Technical background preferred'
+          }
+        ];
+
+        const mockSessions = [
+          {
+            id: 'TS001',
+            title: 'Leadership Workshop: May 2025',
+            programId: 'TP001',
+            trainerId: 'TR001',
+            startDate: '2025-05-15',
+            endDate: '2025-05-16',
+            location: 'Training Room A',
+            maxParticipants: 15,
+            status: 'scheduled',
+            participants: ['EMP001', 'EMP003', 'EMP005'],
+            notes: 'Bring laptops and prepare leadership self-assessment'
+          },
+          {
+            id: 'TS002',
+            title: 'Fuel Safety Training: June 2025',
+            programId: 'TP003',
+            trainerId: 'TR004',
+            startDate: '2025-06-05',
+            endDate: '2025-06-07',
+            location: 'Safety Training Facility',
+            maxParticipants: 10,
+            status: 'scheduled',
+            participants: ['EMP002', 'EMP004'],
+            notes: 'PPE will be provided'
+          },
+          {
+            id: 'TS003',
+            title: 'Customer Service Essentials',
+            programId: 'TP002',
+            trainerId: 'TR003',
+            startDate: '2025-04-20',
+            endDate: '2025-04-20',
+            location: 'Conference Room B',
+            maxParticipants: 20,
+            status: 'completed',
+            participants: ['EMP001', 'EMP002', 'EMP003', 'EMP004'],
+            notes: 'Follow-up assignments due one week after training'
+          }
+        ];
+
+        // Try to fetch trainers, fallback to mock data if fails
+        try {
+          const trainersResponse = await axios.get(`${apiUrl}/api/trainers`);
+          if (trainersResponse.data) {
+            setTrainers(trainersResponse.data);
+          }
+        } catch (error) {
+          console.error('Error fetching trainers:', error);
+          setTrainers(mockTrainers);
+          hasError = true;
         }
         
-        // Fetch training programs
-        const programsResponse = await axios.get(`${apiUrl}/api/trainingprograms`);
-        if (programsResponse.data) {
-          const programs = programsResponse.data;
-          setTrainingPrograms(programs);
-          setFilteredPrograms(programs);
+        // Try to fetch training programs, fallback to mock data if fails
+        try {
+          const programsResponse = await axios.get(`${apiUrl}/api/trainingprograms`);
+          if (programsResponse.data) {
+            const programs = programsResponse.data;
+            setTrainingPrograms(programs);
+            setFilteredPrograms(programs);
+          }
+        } catch (error) {
+          console.error('Error fetching training programs:', error);
+          setTrainingPrograms(mockPrograms);
+          setFilteredPrograms(mockPrograms);
+          hasError = true;
         }
         
-        // Fetch training sessions
-        const sessionsResponse = await axios.get(`${apiUrl}/api/trainingsessions`);
-        if (sessionsResponse.data) {
-          setTrainingSessions(sessionsResponse.data);
+        // Try to fetch training sessions, fallback to mock data if fails
+        try {
+          const sessionsResponse = await axios.get(`${apiUrl}/api/trainingsessions`);
+          if (sessionsResponse.data) {
+            setTrainingSessions(sessionsResponse.data);
+          }
+        } catch (error) {
+          console.error('Error fetching training sessions:', error);
+          setTrainingSessions(mockSessions);
+          hasError = true;
         }
         
-        // Fetch employees
-        const employeesResponse = await axios.get(`${apiUrl}/api/employees`);
-        if (employeesResponse.data) {
-          setEmployees(employeesResponse.data);
+        // Try to fetch employees, fallback to local data if fails
+        try {
+          const employeesResponse = await axios.get(`${apiUrl}/api/employees`);
+          if (employeesResponse.data) {
+            setEmployees(employeesResponse.data);
+          }
+        } catch (error) {
+          console.error('Error fetching employees:', error);
+          // Use data from local file
+          import('../data/allEmployeeData').then(module => {
+            setEmployees(module.default || []);
+          });
+          hasError = true;
         }
         
+        if (hasError) {
+          setError('Unable to connect to the backend API. Using demo data instead.');
+        }
+        
+        // Always finish loading regardless of API success
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching employees:', error);
-        // Return empty array as fallback
-        return [];
+        console.error('Fatal error in fetchData:', error);
+        setError('An unexpected error occurred. Please try again later.');
+        setLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [apiUrl]);
   
   // Fetch employees from the database
   const fetchEmployees = async () => {

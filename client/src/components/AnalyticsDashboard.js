@@ -72,17 +72,30 @@ const AnalyticsDashboard = () => {
   // Generate analytics from local employee data if API fails
   const generateLocalAnalytics = async () => {
     try {
-      // Fetch employee data directly
-      const token = localStorage.getItem('token');
-      const employeeResponse = await axios.get(`${apiUrl}/api/employees`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Try to fetch employee data from API first
+      let employeeData = [];
       
-      const employeeData = employeeResponse.data;
+      try {
+        const token = localStorage.getItem('token');
+        const employeeResponse = await axios.get(`${apiUrl}/api/employees`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        employeeData = employeeResponse.data;
+      } catch (apiError) {
+        console.error('Error fetching employees from API:', apiError);
+        // Import local data
+        const localData = await import('../data/allEmployeeData');
+        employeeData = localData.default || [];
+      }
       
       if (!employeeData || !employeeData.length) {
         throw new Error('No employee data available');
       }
+      
+      // Send a message to user about using local data
+      setError('API connection unavailable. Using local data for analytics dashboard.');
+      
+      // Important: we need to calculate and set the analytics data and finish loading
       
       // Calculate total employees
       const totalEmployees = employeeData.length;
@@ -171,7 +184,7 @@ const AnalyticsDashboard = () => {
     setTimePeriod(period);
   };
 
-  // Early return for loading/error states
+  // Loading state
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
@@ -180,14 +193,7 @@ const AnalyticsDashboard = () => {
     );
   }
   
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
-  
+  // If there's no data at all, show info message
   if (!analyticsData) {
     return (
       <Alert severity="info" sx={{ mb: 2 }}>
@@ -270,6 +276,11 @@ const AnalyticsDashboard = () => {
 
   return (
     <Box sx={{ mb: 4 }}>
+      {error && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
         <Typography variant="h5" component="h2" sx={{ mb: isMobile ? 2 : 0 }}>
           HR Analytics Dashboard
