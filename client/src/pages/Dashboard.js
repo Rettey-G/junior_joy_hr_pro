@@ -632,10 +632,6 @@ const Dashboard = () => {
         {/* Analytics Dashboard Component */}
         <AnalyticsDashboard />
         
-        <Typography variant="h4" gutterBottom sx={{ textAlign: "left", mt: 4, fontWeight: 'bold', color: '#2c3e50' }}>
-          Dashboard Overview
-        </Typography>
-        
         {/* Stats Cards */}
         <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 2 : 4, justifyContent: "center" }}>
         <Grid item xs={6} sm={6} md={3}>
