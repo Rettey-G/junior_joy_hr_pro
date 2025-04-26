@@ -556,11 +556,28 @@ const PayrollDetails = () => {
                 value={selectedEmployee}
                 onChange={handleEmployeeFilter}
                 label="Employee"
-                sx={{ borderRadius: 2 }}
+                sx={{ 
+                  borderRadius: 2,
+                  '& .MuiSelect-select': {
+                    padding: '14px 14px',
+                    fontSize: '1rem',
+                    whiteSpace: 'normal',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                      width: 350
+                    },
+                  },
+                }}
               >
                 <MenuItem value="">All Employees</MenuItem>
                 {employees.map(emp => (
-                  <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
+                  <MenuItem key={emp.id || emp.empNo} value={emp.id || emp.empNo} sx={{ whiteSpace: 'normal' }}>{emp.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>

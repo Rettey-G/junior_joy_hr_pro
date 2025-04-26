@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
-import allEmployeeData from '../data/allEmployeeData';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import { 
   Container, 
@@ -187,7 +186,84 @@ const Dashboard = () => {
         setError('Failed to fetch employee data. Using demo data instead.');
         
         // Use demo data if API fails
-        generateDemoData();
+        // Create demo data based on our DB schema
+        const demoEmployees = [
+          { 
+            empNo: 'EMP001', 
+            name: 'John Doe', 
+            idNumber: 'A1234567',
+            gender: 'Male',
+            nationality: 'American',
+            department: 'Engineering',
+            designation: 'Senior Developer',
+            workSite: 'Headquarters',
+            joinedDate: '2020-01-15',
+            salaryUSD: 95000,
+            salaryMVR: 1463000,
+            active: true
+          },
+          { 
+            empNo: 'EMP002', 
+            name: 'Alice Smith', 
+            idNumber: 'B2345678',
+            gender: 'Female',
+            nationality: 'Canadian',
+            department: 'Marketing',
+            designation: 'Marketing Manager',
+            workSite: 'Branch Office',
+            joinedDate: '2019-03-10',
+            salaryUSD: 85000,
+            salaryMVR: 1308900,
+            active: true
+          },
+          { 
+            empNo: 'EMP003', 
+            name: 'Michael Johnson', 
+            idNumber: 'C3456789',
+            gender: 'Male',
+            nationality: 'British',
+            department: 'Finance',
+            designation: 'Financial Analyst',
+            workSite: 'Headquarters',
+            joinedDate: '2021-06-05',
+            salaryUSD: 80000,
+            salaryMVR: 1232000,
+            active: true
+          },
+          { 
+            empNo: 'EMP004', 
+            name: 'Emily Wang', 
+            idNumber: 'D4567890',
+            gender: 'Female',
+            nationality: 'Chinese',
+            department: 'HR',
+            designation: 'HR Manager',
+            workSite: 'Headquarters',
+            joinedDate: '2018-08-20',
+            salaryUSD: 78000,
+            salaryMVR: 1201200,
+            active: true
+          },
+          { 
+            empNo: 'EMP005', 
+            name: 'Ahmed Sinaz', 
+            idNumber: 'A132309',
+            gender: 'Male',
+            nationality: 'Maldivian',
+            department: 'Admin',
+            designation: 'Managing Director',
+            workSite: 'Office',
+            joinedDate: '2011-03-21',
+            salaryUSD: 120000,
+            salaryMVR: 1848000,
+            active: true
+          }
+        ];
+        
+        // Use the demo data for calculations
+        calculateStats(demoEmployees);
+        generateDistributionData(demoEmployees);
+        generateTurnoverData(demoEmployees);
         setLoading(false);
       }
     };
@@ -217,8 +293,8 @@ const Dashboard = () => {
     
     // Calculate new hires in last 30 days
     const newHires = employees.filter(emp => {
-      const hireDate = emp.hireDate ? new Date(emp.hireDate) : null;
-      return hireDate && hireDate >= thirtyDaysAgo;
+      const joinedDate = emp.joinedDate ? new Date(emp.joinedDate) : null;
+      return joinedDate && joinedDate >= thirtyDaysAgo;
     }).length;
     
     // Calculate unique departments
@@ -228,7 +304,7 @@ const Dashboard = () => {
     });
     
     // Calculate average salary
-    const salaries = employees.map(emp => Number(emp.salary) || 0).filter(sal => sal > 0);
+    const salaries = employees.map(emp => Number(emp.salaryUSD) || 0).filter(sal => sal > 0);
     const avgSalary = salaries.length ? salaries.reduce((a, b) => a + b, 0) / salaries.length : 0;
     
     setStats({
@@ -311,7 +387,7 @@ const Dashboard = () => {
     // Worksite distribution
     const worksiteCount = {};
     employees.forEach(emp => {
-      const worksite = emp.worksite || emp.location || 'Main Office';
+      const worksite = emp.workSite || emp.worksite || emp.location || 'Main Office';
       worksiteCount[worksite] = (worksiteCount[worksite] || 0) + 1;
     });
     
@@ -338,7 +414,7 @@ const Dashboard = () => {
     // Group by worksite for turnover analysis
     const worksites = {};
     employees.forEach(emp => {
-      const worksite = emp.worksite || emp.location || 'Main Office';
+      const worksite = emp.workSite || emp.worksite || emp.location || 'Main Office';
       if (!worksites[worksite]) {
         worksites[worksite] = {
           total: 0,
@@ -348,7 +424,7 @@ const Dashboard = () => {
       worksites[worksite].total++;
       
       // Counting employees who have left or are inactive as turnover
-      if (emp.status === 'Inactive' || emp.endDate) {
+      if (emp.active === false || emp.status === 'Inactive' || emp.endDate) {
         worksites[worksite].turnover++;
       }
     });
