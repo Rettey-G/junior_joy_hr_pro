@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import allEmployeeData from '../data/allEmployeeData';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import { 
   Container, 
   Grid, 
@@ -792,8 +794,17 @@ const Dashboard = () => {
           <CircularProgress />
           <Typography variant="h6" sx={{ ml: 2 }}>Loading dashboard data...</Typography>
         </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>
       ) : (
         <>
+          {/* New Analytics Dashboard */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h4" gutterBottom>
+              Dashboard
+            </Typography>
+          </Box>
+          
           {/* User Welcome Section */}
           <Paper 
             elevation={3} 
@@ -847,9 +858,12 @@ const Dashboard = () => {
               </Paper>
             </Box>
           </Paper>
+          
+          {/* Analytics Dashboard */}
+          <AnalyticsDashboard allEmployeeData={allEmployeeData} />
 
           {/* Stats Cards */}
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2c3e50', mt: 4 }}>
             Dashboard Overview
           </Typography>
         </>

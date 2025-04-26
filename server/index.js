@@ -47,11 +47,13 @@ io.on('connection', (socket) => {
 const authRoutes = require('./routes/auth');
 const employeeRoutes = require('./routes/employees');
 const userRoutes = require('./routes/users');
+const analyticsRoutes = require('./routes/analytics');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
