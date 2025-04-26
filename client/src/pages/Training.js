@@ -682,6 +682,20 @@ const Training = () => {
           getTrainerById={getTrainerById}
           getStatusColor={getStatusColor}
           getEmployeeById={getEmployeeById}
+          handleAddSession={() => {
+            setSessionForm({
+              title: '',
+              programId: '',
+              trainerId: '',
+              startDate: format(new Date(), 'yyyy-MM-dd'),
+              endDate: format(new Date(), 'yyyy-MM-dd'),
+              location: '',
+              status: 'scheduled',
+              maxParticipants: 20,
+              participants: []
+            });
+            setSessionDialogOpen(true);
+          }}
         />
       )}
       
@@ -1004,14 +1018,38 @@ const Training = () => {
       {/* Training Programs Tab */}
       {activeTab === 1 && (
         <TrainingProgramsTab 
-          programs={trainingPrograms}
+          programs={trainingPrograms} 
+          handleAddProgram={() => {
+            setProgramForm({
+              title: '',
+              description: '',
+              category: '',
+              skillLevel: 'beginner',
+              duration: '',
+              topics: []
+            });
+            setProgramDialogOpen(true);
+          }}
         />
       )}
       
       {/* Trainers Tab */}
       {activeTab === 2 && (
         <TrainersTab 
-          trainers={trainers}
+          trainers={trainers} 
+          handleAddTrainer={() => {
+            setTrainerForm({
+              name: '',
+              email: '',
+              phone: '',
+              specialization: '',
+              bio: '',
+              qualifications: '',
+              ratings: 0,
+              imageUrl: '/juniorjoyhr.jpg'
+            });
+            setTrainerDialogOpen(true);
+          }}
         />
       )}
       
@@ -1038,7 +1076,8 @@ const TrainingSessionsTab = ({
   getProgramById, 
   getTrainerById,
   getStatusColor,
-  getEmployeeById
+  getEmployeeById,
+  handleAddSession
 }) => {
   return (
     <Box>
@@ -1111,7 +1150,7 @@ const TrainingSessionsTab = ({
 };
 
 // Training Programs Tab Component
-const TrainingProgramsTab = ({ programs }) => {
+const TrainingProgramsTab = ({ programs, handleAddProgram }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -1174,7 +1213,7 @@ const TrainingProgramsTab = ({ programs }) => {
 };
 
 // Trainers Tab Component
-const TrainersTab = ({ trainers }) => {
+const TrainersTab = ({ trainers, handleAddTrainer }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
