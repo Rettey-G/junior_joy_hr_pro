@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
-import Users from './pages/Users';
+import UserManagement from './pages/UserManagement';
 import PayrollDetails from './pages/PayrollDetails';
 import LeavePlan from './pages/LeavePlan';
 import OrgChart from './pages/OrgChart';
@@ -52,7 +52,7 @@ function App() {
             <Route path="/org-chart" element={isAuthenticated() ? <OrgChart /> : <Navigate to="/login" />} />
             <Route path="/reports" element={isAuthenticated() ? <Reports /> : <Navigate to="/login" />} />
             <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
-            <Route path="/users" element={isAuthenticated() ? <Users /> : <Navigate to="/login" />} />
+            <Route path="/users" element={isAuthenticated() ? <UserManagement /> : <Navigate to="/login" />} />
           </Routes>
         </div>
       </Router>
