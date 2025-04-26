@@ -57,6 +57,10 @@ const Employees = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [departmentDialog, setDepartmentDialog] = useState(false);
+  const [workSiteDialog, setWorkSiteDialog] = useState(false);
+  const [newDepartment, setNewDepartment] = useState('');
+  const [newWorkSite, setNewWorkSite] = useState('');
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [formData, setFormData] = useState({
     empNo: '',
@@ -202,6 +206,42 @@ const Employees = () => {
   // Trigger file input click
   const triggerFileInput = () => {
     fileInputRef.current.click();
+  };
+  
+  // Handle adding new department
+  const handleAddDepartment = () => {
+    setNewDepartment('');
+    setDepartmentDialog(true);
+  };
+  
+  // Handle saving new department
+  const handleSaveDepartment = () => {
+    if (newDepartment.trim()) {
+      // In a real app, you would save this to the backend
+      // For demo, we'll just show a success message
+      showSnackbar(`Department "${newDepartment}" added successfully`, 'success');
+      setDepartmentDialog(false);
+    } else {
+      showSnackbar('Please enter a department name', 'error');
+    }
+  };
+  
+  // Handle adding new work site
+  const handleAddWorkSite = () => {
+    setNewWorkSite('');
+    setWorkSiteDialog(true);
+  };
+  
+  // Handle saving new work site
+  const handleSaveWorkSite = () => {
+    if (newWorkSite.trim()) {
+      // In a real app, you would save this to the backend
+      // For demo, we'll just show a success message
+      showSnackbar(`Work Site "${newWorkSite}" added successfully`, 'success');
+      setWorkSiteDialog(false);
+    } else {
+      showSnackbar('Please enter a work site name', 'error');
+    }
   };
 
   // Save employee (create or update) - now working with local data
@@ -412,9 +452,8 @@ const Employees = () => {
           </Box>
         </Box>
 
-        {/* Filters */}
-        {filterOpen && (
-          <Paper elevation={2} sx={{ p: isMobile ? 1.5 : 2, mb: isMobile ? 2 : 3 }}>
+        {/* Filters - Always visible now */}
+        <Paper elevation={2} sx={{ p: isMobile ? 1.5 : 2, mb: isMobile ? 2 : 3 }}>
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
@@ -436,14 +475,19 @@ const Employees = () => {
             </Box>
             
             <Grid container spacing={isMobile ? 1 : 2}>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
                   <InputLabel>Department</InputLabel>
                   <Select
                     name="department"
                     value={filters.department}
                     label="Department"
                     onChange={handleFilterChange}
+                    MenuProps={{ 
+                      PaperProps: { sx: { maxHeight: 300 } },
+                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                      transformOrigin: { vertical: 'top', horizontal: 'left' }
+                    }}
                   >
                     <MenuItem value="">All Departments</MenuItem>
                     {getDepartments().map(dept => (
@@ -452,14 +496,19 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
                   <InputLabel>Work Site</InputLabel>
                   <Select
                     name="workSite"
                     value={filters.workSite}
                     label="Work Site"
                     onChange={handleFilterChange}
+                    MenuProps={{ 
+                      PaperProps: { sx: { maxHeight: 300 } },
+                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                      transformOrigin: { vertical: 'top', horizontal: 'left' }
+                    }}
                   >
                     <MenuItem value="">All Sites</MenuItem>
                     {getWorkSites().map(site => (
@@ -468,14 +517,19 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
                   <InputLabel>Nationality</InputLabel>
                   <Select
                     name="nationality"
                     value={filters.nationality}
                     label="Nationality"
                     onChange={handleFilterChange}
+                    MenuProps={{ 
+                      PaperProps: { sx: { maxHeight: 300 } },
+                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                      transformOrigin: { vertical: 'top', horizontal: 'left' }
+                    }}
                   >
                     <MenuItem value="">All Nationalities</MenuItem>
                     {getNationalities().map(nationality => (
@@ -484,14 +538,19 @@ const Employees = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"}>
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small" margin={isMobile ? "dense" : "normal"} sx={{ minWidth: '200px' }}>
                   <InputLabel>Designation</InputLabel>
                   <Select
                     name="designation"
                     value={filters.designation}
                     label="Designation"
                     onChange={handleFilterChange}
+                    MenuProps={{ 
+                      PaperProps: { sx: { maxHeight: 300 } },
+                      anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                      transformOrigin: { vertical: 'top', horizontal: 'left' }
+                    }}
                   >
                     <MenuItem value="">All Designations</MenuItem>
                     {getDesignations().map(designation => (
@@ -547,7 +606,6 @@ const Employees = () => {
               </Box>
             )}
           </Paper>
-        )}
 
         {/* Active Filters Indication */}
         {!filterOpen && (filters.department || filters.workSite || filters.nationality || filters.designation) && (
@@ -606,10 +664,10 @@ const Employees = () => {
             <Typography color="textSecondary">No employees found</Typography>
           </Paper>
         ) : (
-          // Card View for both mobile and desktop
-          <Grid container spacing={2}>
+          // Card View for both mobile and desktop - Improved layout with equal distribution
+          <Grid container spacing={2} justifyContent="center">
             {employees.map((employee) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={employee.empNo}>
+              <Grid item xs={12} sm={6} md={4} xl={3} key={employee.empNo} sx={{ display: 'flex' }}>
                 <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, backgroundColor: employee.gender === 'Female' ? 'pink' : 'primary.light', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -745,64 +803,40 @@ const Employees = () => {
         fullWidth
         fullScreen={isMobile}
       >
-        <DialogTitle sx={{ px: isMobile ? 2 : 3, py: isMobile ? 1.5 : 2 }}>
-          {currentEmployee ? 'Edit Employee' : 'Add New Employee'}
-        </DialogTitle>
-        <DialogContent dividers sx={{ px: isMobile ? 2 : 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} className="text-center">
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-                {imagePreview || formData.image ? (
-                  <Badge
-                    overlap="circular"
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    badgeContent={
-                      <IconButton 
-                        onClick={triggerFileInput} 
-                        sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
-                        size="small"
-                      >
-                        <PhotoCamera fontSize="small" />
-                      </IconButton>
-                    }
-                  >
-                    <Avatar 
-                      src={imagePreview || formData.image} 
-                      alt={formData.name} 
-                      sx={{ width: 100, height: 100, border: '3px solid #e0e0e0' }} 
-                    />
-                  </Badge>
-                ) : (
-                  <Badge
-                    overlap="circular"
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    badgeContent={
-                      <IconButton 
-                        onClick={triggerFileInput} 
-                        sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
-                        size="small"
-                      >
-                        <PhotoCamera fontSize="small" />
-                      </IconButton>
-                    }
-                  >
-                    <Avatar 
-                      sx={{ width: 100, height: 100, bgcolor: 'primary.light', border: '3px solid #e0e0e0' }} 
-                    >
-                      <PersonAdd sx={{ fontSize: 40 }} />
-                    </Avatar>
-                  </Badge>
-                )}
+        <DialogTitle>{currentEmployee ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 0 }}>
+            {/* Profile Image */}
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <Box sx={{ position: 'relative' }}>
+                <Avatar
+                  src={imagePreview || (formData.gender === 'Female' ? '/female-placeholder.jpg' : '/male-placeholder.jpg')}
+                  sx={{ width: 120, height: 120, mb: 1, border: '2px solid #ccc', boxShadow: '0 3px 5px rgba(0,0,0,0.2)' }}
+                />
                 <input
                   type="file"
                   accept="image/*"
-                  ref={fileInputRef}
                   style={{ display: 'none' }}
+                  ref={fileInputRef}
                   onChange={handleImageUpload}
                 />
-                <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
-                  Click the camera icon to upload photo
-                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PhotoCamera />}
+                  onClick={triggerFileInput}
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: -20,
+                    borderRadius: '20px',
+                    fontSize: '0.7rem',
+                    py: 0.5
+                  }}
+                >
+                  Upload
+                </Button>
               </Box>
             </Grid>
             
@@ -998,6 +1032,95 @@ const Employees = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add Department Dialog */}
+      <Dialog open={departmentDialog} onClose={() => setDepartmentDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Add New Department</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Department Name"
+            type="text"
+            fullWidth
+            value={newDepartment}
+            onChange={(e) => setNewDepartment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDepartmentDialog(false)}>Cancel</Button>
+          <Button onClick={handleSaveDepartment} color="primary" variant="contained">
+            Save Department
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Work Site Dialog */}
+      <Dialog open={workSiteDialog} onClose={() => setWorkSiteDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Add New Work Site</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Work Site Name"
+            type="text"
+            fullWidth
+            value={newWorkSite}
+            onChange={(e) => setNewWorkSite(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWorkSiteDialog(false)}>Cancel</Button>
+          <Button onClick={handleSaveWorkSite} color="primary" variant="contained">
+            Save Work Site
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Footer with logo */}
+      <Paper elevation={3} sx={{ mt: 4, p: 3, borderRadius: 0, borderTop: '1px solid #eee' }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+              <img src="/juniorjoyhr.jpg" alt="Junior Joy HR Pro" style={{ width: 50, height: 50, borderRadius: '50%' }} />
+              <Typography variant="h6" sx={{ ml: 2, fontWeight: 'bold' }}>
+                Junior Joy HR Pro
+              </Typography>
+            </Box>
+            <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 1 }}>
+              Happy Teams, Smarter HR
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+              Quick Links
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Button size="small" color="primary">Dashboard</Button>
+              <Button size="small" color="primary">Employees</Button>
+              <Button size="small" color="primary">Payroll</Button>
+              <Button size="small" color="primary">Training</Button>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'center', md: 'right' } }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Contact Support
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              support@juniorjoyhrpro.com
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              +960 7974242
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="caption" color="textSecondary" align="center" display="block">
+              {new Date().getFullYear()} Junior Joy HR Pro. All rights reserved.
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* Snackbar for notifications */}
       <Snackbar
