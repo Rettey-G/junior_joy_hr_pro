@@ -459,8 +459,6 @@ const TimeAttendance = () => {
                   />
                 </LocalizationProvider>
               </Grid>
-              </Grid>
-              
               <Grid item xs={12} md={3}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
