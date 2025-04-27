@@ -7,6 +7,7 @@ import { Container, Box, useMediaQuery } from '@mui/material';
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import UserDashboard from './pages/UserDashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
 import UserManagement from './pages/UserManagement';
@@ -109,6 +110,10 @@ function App() {
     return localStorage.getItem('token') !== null;
   };
 
+  const isAdmin = () => {
+    return localStorage.getItem('userRole') === 'admin';
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -118,16 +123,20 @@ function App() {
           <ResponsiveContainer>
             <Routes>
               <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/" />} />
-              <Route path="/" element={isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />} />
-              <Route path="/employees" element={isAuthenticated() ? <Employees /> : <Navigate to="/login" />} />
+              <Route path="/" element={
+                isAuthenticated() ? 
+                  (isAdmin() ? <Dashboard /> : <UserDashboard />) : 
+                  <Navigate to="/login" />
+              } />
+              <Route path="/employees" element={isAuthenticated() && isAdmin() ? <Employees /> : <Navigate to="/" />} />
               <Route path="/payroll" element={isAuthenticated() ? <Payroll /> : <Navigate to="/login" />} />
               <Route path="/payroll-details" element={isAuthenticated() ? <PayrollDetails /> : <Navigate to="/login" />} />
-              <Route path="/leave-plan" element={isAuthenticated() ? <LeavePlan /> : <Navigate to="/login" />} />
+              <Route path="/leave-plan" element={isAuthenticated() && isAdmin() ? <LeavePlan /> : <Navigate to="/" />} />
               <Route path="/leave" element={isAuthenticated() ? <LeavePage /> : <Navigate to="/login" />} />
               <Route path="/org-chart" element={isAuthenticated() ? <OrgChart /> : <Navigate to="/login" />} />
-              <Route path="/reports" element={isAuthenticated() ? <Reports /> : <Navigate to="/login" />} />
+              <Route path="/reports" element={isAuthenticated() && isAdmin() ? <Reports /> : <Navigate to="/" />} />
               <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
-              <Route path="/users" element={isAuthenticated() ? <UserManagement /> : <Navigate to="/login" />} />
+              <Route path="/users" element={isAuthenticated() && isAdmin() ? <UserManagement /> : <Navigate to="/" />} />
               <Route path="/training" element={isAuthenticated() ? <Training /> : <Navigate to="/login" />} />
             </Routes>
           </ResponsiveContainer>

@@ -50,8 +50,8 @@ const Navbar = () => {
     navigate('/login');
   };
   
-  // Navigation items for both desktop and mobile views
-  const navItems = [
+  // Navigation items for admin users
+  const adminNavItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
     { text: 'Payroll', icon: <AttachMoneyIcon />, path: '/payroll' },
@@ -61,13 +61,21 @@ const Navbar = () => {
     { text: 'Org Chart', icon: <AccountTreeIcon />, path: '/org-chart' },
     { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
     { text: 'Time & Attendance', icon: <AccessTimeIcon />, path: '/time-attendance' },
+    { text: 'Training', icon: <SchoolIcon />, path: '/training' },
+    { text: 'Users', icon: <ManageAccountsIcon />, path: '/users' }
+  ];
+
+  // Navigation items for regular users
+  const userNavItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Leave Requests', icon: <EventNoteIcon />, path: '/leave' },
+    { text: 'Time & Attendance', icon: <AccessTimeIcon />, path: '/time-attendance' },
+    { text: 'Payroll', icon: <AttachMoneyIcon />, path: '/payroll' },
     { text: 'Training', icon: <SchoolIcon />, path: '/training' }
   ];
-  
-  // Add Users management for admin
-  if (isAdmin) {
-    navItems.push({ text: 'Users', icon: <ManageAccountsIcon />, path: '/users' });
-  }
+
+  // Use appropriate navigation items based on user role
+  const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
     <>
