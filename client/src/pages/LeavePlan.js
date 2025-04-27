@@ -1119,9 +1119,8 @@ const LeavePlan = () => {
           <Button onClick={() => setPublicHolidayDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Box>
-  </LocalizationProvider>
-);
+    </LocalizationProvider>
+  );
 };
 
 export default LeavePlan;
