@@ -122,24 +122,24 @@ const PayrollDetails = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Use fixed salary data for consistent display with dual currency
+        // Process employee data from the database for display with dual currency
         const employeesWithSalary = response.data.map((emp, index) => {
           // Use simplified ID format instead of UUIDs
           const empId = emp.id && emp.id.length > 10 ? `EMP-${100 + index}` : emp.id;
           
-          // Generate fixed USD values to ensure consistency
-          const basicSalaryUSD = 3000 + (index * 300);
-          const allowancesUSD = 500 + (index * 50);
-          const deductionsUSD = 100 + (index * 10);
-          const overtimeUSD = (index % 5) * 25; // Overtime hours * hourly rate
-          const serviceChargeUSD = 100 + (index * 10);
+          // Use salary data from the database
+          const basicSalaryUSD = emp.salaryUSD || emp.salary || 0;
+          const allowancesUSD = emp.allowancesUSD || 0;
+          const deductionsUSD = emp.deductionsUSD || 0;
+          const overtimeUSD = emp.overtimeUSD || 0;
+          const serviceChargeUSD = emp.serviceChargeUSD || 0;
           
-          // Calculate MVR values based on exchange rate
-          const basicSalaryMVR = Math.round(basicSalaryUSD * exchangeRate);
-          const allowancesMVR = Math.round(allowancesUSD * exchangeRate);
-          const deductionsMVR = Math.round(deductionsUSD * exchangeRate);
-          const overtimeMVR = Math.round(overtimeUSD * exchangeRate);
-          const serviceChargeMVR = Math.round(serviceChargeUSD * exchangeRate);
+          // Get MVR values from database or calculate if not present
+          const basicSalaryMVR = emp.salaryMVR || Math.round(basicSalaryUSD * exchangeRate);
+          const allowancesMVR = emp.allowancesMVR || Math.round(allowancesUSD * exchangeRate);
+          const deductionsMVR = emp.deductionsMVR || Math.round(deductionsUSD * exchangeRate);
+          const overtimeMVR = emp.overtimeMVR || Math.round(overtimeUSD * exchangeRate);
+          const serviceChargeMVR = emp.serviceChargeMVR || Math.round(serviceChargeUSD * exchangeRate);
           
           return {
             ...emp,
