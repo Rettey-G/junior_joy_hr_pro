@@ -191,6 +191,12 @@ const Employees = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showSnackbar('Image size must be less than 5MB', 'error');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({
@@ -198,6 +204,10 @@ const Employees = () => {
           image: reader.result
         });
         setImagePreview(reader.result);
+        showSnackbar('Image uploaded successfully', 'success');
+      };
+      reader.onerror = () => {
+        showSnackbar('Error reading file', 'error');
       };
       reader.readAsDataURL(file);
     }
@@ -206,6 +216,16 @@ const Employees = () => {
   // Trigger file input click
   const triggerFileInput = () => {
     fileInputRef.current.click();
+  };
+  
+  // Handle removing the uploaded image
+  const handleRemoveImage = () => {
+    setFormData({
+      ...formData,
+      image: ''
+    });
+    setImagePreview('');
+    showSnackbar('Image removed', 'info');
   };
   
   // Handle adding new department
@@ -302,34 +322,22 @@ const Employees = () => {
       // Create a new employee object with all fields
       const employeeData = {
         ...formData,
-        _id: formData.empNo // Use empNo as the ID
-      };
-      
-      if (isEditing) {
-        // Update in the list
-        setEmployees(employees.map(emp => emp.empNo === currentEmployee.empNo ? employeeData : emp));
         showSnackbar('Employee updated successfully', 'success');
       } else {
-        // Generate a new employee number if not provided
-        if (!employeeData.empNo) {
-          const lastEmpNo = employees.length > 0 
-            ? Math.max(...employees.map(e => parseInt(e.empNo.replace('FEM', ''))) || 0)
-            : 0;
-          employeeData.empNo = `FEM${String(lastEmpNo + 1).padStart(3, '0')}`;
-          employeeData._id = employeeData.empNo;
-        }
-        
-        // Add to the list
-        setEmployees([...employees, employeeData]);
+        // Add mode - create new employee with ID
+        const newEmployee = {
+          ...formData,
+          id: `EMP-${Math.floor(Math.random() * 1000)}`,
+          // Include the image in the new employee record
+          image: imagePreview || formData.image
+        };
+        setEmployees([...employees, newEmployee]);
         showSnackbar('Employee added successfully', 'success');
       }
       
-      // In a real app, here you would save to the backend
-      // For now we're just working with local data
-      
       handleCloseDialog();
     } catch (err) {
-      showSnackbar('Error saving employee: ' + (err.message || 'Unknown error'), 'error');
+      showSnackbar(`Error: ${err.message}`, 'error');
     }
   };
 
@@ -884,14 +892,24 @@ const Employees = () => {
           <Grid container spacing={2} sx={{ mt: 0 }}>
             {/* Profile Image */}
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-              <Box sx={{ position: 'relative' }}>
+              <Box sx={{ position: 'relative', textAlign: 'center' }}>
                 <Avatar
-                  src={imagePreview || (formData.gender === 'Female' ? '/female-placeholder.jpg' : '/male-placeholder.jpg')}
-                  sx={{ width: 120, height: 120, mb: 1, border: '2px solid #ccc', boxShadow: '0 3px 5px rgba(0,0,0,0.2)' }}
+                  src={imagePreview || formData.image || (formData.gender === 'Female' ? '/female-placeholder.jpg' : '/male-placeholder.jpg')}
+                  sx={{ 
+                    width: 150, 
+                    height: 150, 
+                    mb: 1, 
+                    border: '3px solid #f0f0f0', 
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.9 }
+                  }}
+                  onClick={triggerFileInput}
                 />
                 <input
                   type="file"
                   accept="image/*"
+                  capture="environment"
                   style={{ display: 'none' }}
                   ref={fileInputRef}
                   onChange={handleImageUpload}
@@ -905,14 +923,19 @@ const Employees = () => {
                   sx={{
                     position: 'absolute',
                     bottom: 0,
-                    right: -20,
+                    right: -10,
                     borderRadius: '20px',
                     fontSize: '0.7rem',
-                    py: 0.5
+                    py: 0.5,
+                    px: 1,
+                    boxShadow: 2
                   }}
                 >
                   Upload
                 </Button>
+                <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                  Click to upload from computer or phone
+                </Typography>
               </Box>
             </Grid>
             
