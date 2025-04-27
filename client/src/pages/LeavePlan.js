@@ -561,7 +561,9 @@ const LeavePlan = () => {
           </Box>
         </Box>
       </Box>
-    <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
+      
+      {/* Employee selection and leave balance section */}
+      <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Typography variant="subtitle1" gutterBottom fontWeight="bold" color="primary.main">
