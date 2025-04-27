@@ -13,13 +13,13 @@ router.post('/login', async (req, res) => {
     
     // Check if user exists
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid username or password' });
     }
     
     // Check if password matches
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid username or password' });
     }
     
     // Update last login time
@@ -28,9 +28,15 @@ router.post('/login', async (req, res) => {
     
     // Create and sign JWT token
     const token = jwt.sign(
-      { _id: user._id, username: user.username, role: user.role },
+      { 
+        _id: user._id, 
+        username: user.username, 
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName
+      },
       process.env.JWT_SECRET || 'yourjwtsecretkey',
-      { expiresIn: '1d' }
+      { expiresIn: '24h' }
     );
     
     // Send token and user info (without password)
@@ -41,12 +47,13 @@ router.post('/login', async (req, res) => {
         username: user.username,
         role: user.role,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        lastLogin: user.lastLogin
       }
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: 'Server error occurred during login' });
   }
 });
 
@@ -102,14 +109,13 @@ router.get('/verify', async (req, res) => {
     
     res.json({ valid: true, user });
   } catch (err) {
-    res.status(401).json({ valid: false, message: 'Invalid token' });
+    res.status(401).json({ valid: false, message: 'Invalid or expired token' });
   }
 });
 
 // Logout endpoint
 router.post('/logout', (req, res) => {
-  // On client: remove token
-  res.json({ msg: 'Logged out' });
+  res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;
