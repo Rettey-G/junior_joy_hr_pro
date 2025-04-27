@@ -319,9 +319,19 @@ const Employees = () => {
     try {
       const isEditing = !!currentEmployee;
       
-      // Create a new employee object with all fields
-      const employeeData = {
-        ...formData,
+      if (isEditing) {
+        // Update existing employee
+        const updatedEmployees = employees.map(emp => {
+          if (emp.empNo === currentEmployee.empNo) {
+            return { 
+              ...formData,
+              // Keep the image if not changed
+              image: imagePreview || formData.image || currentEmployee.image
+            };
+          }
+          return emp;
+        });
+        setEmployees(updatedEmployees);
         showSnackbar('Employee updated successfully', 'success');
       } else {
         // Add mode - create new employee with ID
