@@ -13,7 +13,7 @@ import Payroll from './pages/Payroll';
 import UserManagement from './pages/UserManagement';
 import PayrollDetails from './pages/PayrollDetails';
 import LeavePlan from './pages/LeavePlan';
-import LeavePage from './pages/LeavePage';
+import UserPanel from './pages/UserPanel';
 import OrgChart from './pages/OrgChart';
 import Reports from './pages/Reports';
 import TimeAttendance from './pages/TimeAttendance';
@@ -132,11 +132,10 @@ function App() {
               <Route path="/payroll" element={isAuthenticated() ? <Payroll /> : <Navigate to="/login" />} />
               <Route path="/payroll-details" element={isAuthenticated() ? <PayrollDetails /> : <Navigate to="/login" />} />
               <Route path="/leave-plan" element={isAuthenticated() && isAdmin() ? <LeavePlan /> : <Navigate to="/" />} />
-              <Route path="/leave" element={isAuthenticated() ? <LeavePage /> : <Navigate to="/login" />} />
+              <Route path="/users" element={isAuthenticated() && isAdmin() ? <UserPanel /> : <Navigate to="/" />} />
               <Route path="/org-chart" element={isAuthenticated() ? <OrgChart /> : <Navigate to="/login" />} />
               <Route path="/reports" element={isAuthenticated() && isAdmin() ? <Reports /> : <Navigate to="/" />} />
               <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
-              <Route path="/users" element={isAuthenticated() && isAdmin() ? <UserManagement /> : <Navigate to="/" />} />
               <Route path="/training" element={isAuthenticated() ? <Training /> : <Navigate to="/login" />} />
             </Routes>
           </ResponsiveContainer>

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const jwt = require('jsonwebtoken');
 
 // Middleware to check if user is admin
@@ -21,95 +23,111 @@ const isAdmin = (req, res, next) => {
   }
 };
 
-// GET all users (admin only)
-router.get('/', isAdmin, async (req, res) => {
+// Get all users (admin only)
+router.get('/', [auth, admin], async (req, res) => {
   try {
-    // Do not return password field
-    const users = await User.find().select('-password');
+    const users = await User.find({}, '-password');
     res.json(users);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// GET user by ID (admin only)
-router.get('/:id', isAdmin, async (req, res) => {
+// Get single user by ID (admin or self)
+router.get('/:id', auth, async (req, res) => {
   try {
+    // Check if user is admin or requesting their own data
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
     const user = await User.findById(req.params.id).select('-password');
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// CREATE user (admin only)
-router.post('/', isAdmin, async (req, res) => {
+// Create new user (admin only)
+router.post('/', [auth, admin], async (req, res) => {
   try {
+    const { username, email, password, role } = req.body;
+
     // Check if username already exists
-    const existingUser = await User.findOne({ username: req.body.username });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username already exists' });
+    let user = await User.findOne({ username });
+    if (user) {
+      return res.status(400).json({ error: 'Username already exists' });
     }
-    
-    const newUser = new User(req.body);
-    await newUser.save();
-    
-    // Do not return password
-    const savedUser = await User.findById(newUser._id).select('-password');
-    res.status(201).json(savedUser);
+
+    // Create new user
+    user = new User({
+      username,
+      email,
+      password,
+      role: role || 'employee'
+    });
+
+    await user.save();
+
+    // Return user without password
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.status(201).json(userResponse);
   } catch (err) {
-    res.status(400).json({ message: 'Failed to create user', error: err.message });
+    res.status(400).json({ error: err.message });
   }
 });
 
-// UPDATE user (admin only)
-router.put('/:id', isAdmin, async (req, res) => {
+// Update user (admin or self)
+router.put('/:id', auth, async (req, res) => {
   try {
-    const userData = { ...req.body };
-    
-    // If changing username, check if new username already exists
-    if (userData.username) {
-      const existingUser = await User.findOne({ 
-        username: userData.username,
-        _id: { $ne: req.params.id } // Exclude current user
-      });
-      
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
+    // Check if user is admin or updating their own data
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+      return res.status(403).json({ error: 'Access denied' });
     }
-    
-    // If updating password, it will be auto-hashed by the pre-save hook
-    const updatedUser = await User.findByIdAndUpdate(
+
+    const { username, email, role, password } = req.body;
+    const updateData = { username, email };
+
+    // Only admin can update roles
+    if (req.user.role === 'admin' && role) {
+      updateData.role = role;
+    }
+
+    // If password is provided, it will be hashed by the pre-save middleware
+    if (password) {
+      updateData.password = password;
+    }
+
+    const user = await User.findByIdAndUpdate(
       req.params.id,
-      userData,
-      { new: true }
+      updateData,
+      { new: true, runValidators: true }
     ).select('-password');
-    
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-    
-    res.json(updatedUser);
+
+    res.json(user);
   } catch (err) {
-    res.status(400).json({ message: 'Failed to update user', error: err.message });
+    res.status(400).json({ error: err.message });
   }
 });
 
-// DELETE user (admin only)
-router.delete('/:id', isAdmin, async (req, res) => {
+// Delete user (admin only)
+router.delete('/:id', [auth, admin], async (req, res) => {
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.id);
-    
-    if (!deletedUser) {
-      return res.status(404).json({ message: 'User not found' });
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-    
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

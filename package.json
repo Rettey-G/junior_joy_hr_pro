@@ -1,7 +1,9 @@
 {
   "dependencies": {
+    "@emotion/styled": "^11.14.0",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.0",
+    "react-organizational-chart": "^2.2.1",
     "uuid": "^11.1.0"
   }
 }
