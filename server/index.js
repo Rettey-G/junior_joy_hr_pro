@@ -51,7 +51,7 @@ const userRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
 const leaveRoutes = require('./routes/leaves');
 
-// Use routes
+// API routes - should come before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
@@ -60,11 +60,13 @@ app.use('/api/leaverequests', leaveRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  // Serve static files
+  const staticPath = path.join(__dirname, '../client/build');
+  app.use(express.static(staticPath));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  // Handle React routing, return all requests to React app
+  app.get('/*', function(req, res) {
+    res.sendFile(path.join(staticPath, 'index.html'));
   });
 }
 
@@ -74,7 +76,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Handle 404 routes
+// Handle 404 routes - should be last
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
