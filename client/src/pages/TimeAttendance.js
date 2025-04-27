@@ -459,37 +459,6 @@ const TimeAttendance = () => {
                   />
                 </LocalizationProvider>
               </Grid>
-              
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Employee</InputLabel>
-                  <Select
-                    value={selectedEmployee}
-                    label="Employee"
-                    onChange={(e) => setSelectedEmployee(e.target.value)}
-                  >
-                    <MenuItem value="">All Employees</MenuItem>
-                    {employees.map(emp => (
-                      <MenuItem key={emp.id} value={emp.id}>{emp.name}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Department</InputLabel>
-                  <Select
-                    value={filterDepartment}
-                    label="Department"
-                    onChange={(e) => setFilterDepartment(e.target.value)}
-                  >
-                    <MenuItem value="">All Departments</MenuItem>
-                    {getDepartments().map(dept => (
-                      <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
               </Grid>
               
               <Grid item xs={12} md={3}>
