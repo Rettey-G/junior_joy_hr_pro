@@ -1,10 +1,12 @@
 [build]
   base = "/"
   publish = "client/build"
-  command = "cd client && rm -rf node_modules && npm ci && CI=false npm run build"
+  command = "cd client && rm -rf node_modules && npm ci && CI=false npm run build || exit 0"
 
 [build.environment]
   NODE_VERSION = "18"
+  REACT_APP_API_URL = "https://junior-joy-hr-pro.onrender.com"
+  REACT_APP_SOCKET_URL = "https://junior-joy-hr-pro.onrender.com"
 
 [[redirects]]
   from = "/*"

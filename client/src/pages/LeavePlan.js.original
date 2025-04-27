@@ -605,7 +605,7 @@ const LeavePlan = () => {
             </Typography>
           )}
         </Box>
-      </Box>
+      </Paper>
       
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>

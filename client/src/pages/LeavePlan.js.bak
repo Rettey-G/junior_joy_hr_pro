@@ -1,3 +1,6 @@
+// LeavePlan.js backup
+// This file was created as a backup when fixing syntax errors in the original file
+
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, Table, TableBody, TableCell, TableContainer,
