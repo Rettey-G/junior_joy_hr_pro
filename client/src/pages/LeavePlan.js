@@ -18,7 +18,7 @@ const leaveTypes = [
   { value: 'sick', label: 'Sick Leave', entitlement: 30, description: 'For health-related absences. Medical certificate required for leaves longer than 2 days. Unlimited paid sick leave for hospitalization.' },
   { value: 'emergency', label: 'Emergency Leave', entitlement: 5, description: 'For urgent personal matters requiring immediate attention. Limited to 5 days per year. Management approval required.' },
   { value: 'maternity', label: 'Maternity Leave', entitlement: 60, description: '60 days paid leave for female employees. Can be extended by up to 30 additional days unpaid. Must apply at least 30 days prior to expected delivery date.' },
-  { value: 'paternity', label: 'Paternity Leave', entitlement: 3, description: '3 days paid leave for new fathers. Must be taken within 30 days of child's birth. Birth certificate required upon return.' },
+  { value: 'paternity', label: 'Paternity Leave', entitlement: 3, description: '3 days paid leave for new fathers. Must be taken within 30 days of child\'s birth. Birth certificate required upon return.' },
   { value: 'family', label: 'Family Care', entitlement: 10, description: 'To care for immediate family members during illness or emergency. Supporting documentation required. Maximum 10 days per year.' },
   { value: 'unpaid', label: 'Unpaid Leave', entitlement: 0, description: 'Leave without pay for extended absences. Requires department head and HR approval. Benefits suspended during unpaid leave period.' }
 ];
