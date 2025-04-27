@@ -144,6 +144,7 @@ const LeavePlan = () => {
   });
 
   const userRole = localStorage.getItem('userRole');
+  const userId = localStorage.getItem('userId');
   const isAdmin = userRole === 'admin' || userRole === 'hr';
 
   // Fetch employees data and leave records
@@ -245,24 +246,40 @@ const LeavePlan = () => {
     }
   }, []);
 
-  // Fetch real leave data from backend (to be implemented)
+  // Fetch leave data from backend with filters
   const fetchLeaves = async () => {
     setLoading(true);
     setError('');
     try {
-      // Apply filters to the existing leave records
-      const filteredLeaves = leaveRecords.filter(leave => {
-        if (filters.department && leave.department !== filters.department) return false;
-        if (filters.status && leave.status !== filters.status) return false;
-        if (filters.type && leave.leaveType !== filters.type) return false;
-        return true;
+      const token = localStorage.getItem('token');
+      
+      // Build query params for filters
+      const queryParams = new URLSearchParams();
+      if (filters.department) queryParams.append('department', filters.department);
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.type) queryParams.append('leaveType', filters.type);
+      
+      // Add user ID filter if not admin/HR
+      if (!isAdmin) {
+        const userId = localStorage.getItem('userId');
+        if (userId) queryParams.append('employeeId', userId);
+      }
+      
+      const queryString = queryParams.toString();
+      const url = `/api/leaverequests${queryString ? `?${queryString}` : ''}`;
+      
+      // Fetch filtered data from backend
+      const response = await api.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       // Update leaves with filtered data
-      setLeaves(filteredLeaves);
+      setLeaves(response.data);
+      setLeaveRecords(response.data);
       setLoading(false);
     } catch (err) {
-      setError('Failed to filter leave data');
+      console.error('Error fetching leave data:', err);
+      setError('Failed to fetch leave data');
       setLoading(false);
     }
   };
@@ -273,6 +290,13 @@ const LeavePlan = () => {
     fetchData(); // Use fetchData instead of fetchEmployees
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Apply filters when they change
+  useEffect(() => {
+    if (!loading) {
+      fetchLeaves();
+    }
+  }, [filters]);
 
   // Filter leaves based on criteria
   const filteredLeaves = leaves.filter(leave => {
@@ -320,9 +344,20 @@ const LeavePlan = () => {
       });
       setSelectedLeave(leave);
     } else {
-      // Create mode - reset form
+      // Create mode - reset form with current user's ID if not admin
+      let defaultEmployeeId = '';
+      
+      if (!isAdmin) {
+        // For regular employees, use their own ID
+        const userId = localStorage.getItem('userId');
+        defaultEmployeeId = userId || '';
+      } else {
+        // For admins/HR, default to first employee
+        defaultEmployeeId = employees[0]?.empNo || employees[0]?.id || '';
+      }
+      
       setFormData({
-        employeeId: employees[0]?.empNo || '',
+        employeeId: defaultEmployeeId,
         leaveType: 'annual',
         startDate: new Date(),
         endDate: new Date(),
@@ -335,7 +370,7 @@ const LeavePlan = () => {
   };
 
   // Save leave (create or update)
-  const handleSaveLeave = () => {
+  const handleSaveLeave = async () => {
     // Validate form
     if (!formData.employeeId || !formData.startDate || !formData.endDate || !formData.reason) {
       setError('Please fill in all required fields');
@@ -352,46 +387,112 @@ const LeavePlan = () => {
     const days = calculateDays();
 
     // Get employee name from employee ID
-    const employee = employees.find(emp => emp.empNo === formData.employeeId);
+    const employee = employees.find(emp => emp.empNo === formData.employeeId || emp.id === formData.employeeId);
     const employeeName = employee ? employee.name : 'Unknown';
     const department = employee ? employee.department : 'Unknown';
-
-    // Create new leave object
-    const newLeave = {
-      ...formData,
-      id: selectedLeave ? selectedLeave.id : Date.now().toString(),
-      employeeName,
-      department,
-      days,
-      startDate: format(new Date(formData.startDate), 'yyyy-MM-dd'),
-      endDate: format(new Date(formData.endDate), 'yyyy-MM-dd')
-    };
-
-    // Update leaves array
-    if (selectedLeave) {
-      // Update existing leave
-      setLeaves(prev => prev.map(leave => leave.id === selectedLeave.id ? newLeave : leave));
-    } else {
-      // Add new leave
-      setLeaves(prev => [...prev, newLeave]);
-    }
-
-    // Close dialog
-    setDialogOpen(false);
-    setSelectedLeave(null);
+    
+    setLoading(true);
     setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const leaveData = {
+        employeeId: formData.employeeId,
+        leaveType: formData.leaveType,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        reason: formData.reason,
+        status: formData.status,
+        days: days,
+        department: department
+      };
+      
+      let response;
+      
+      if (selectedLeave?._id) {
+        // Update existing leave in backend
+        response = await api.put(`/api/leaverequests/${selectedLeave._id}`, leaveData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        // Create new leave in backend
+        response = await api.post('/api/leaverequests', leaveData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Re-fetch data to get updated list from server
+      await fetchData();
+      
+      // Close dialog
+      setDialogOpen(false);
+      setSelectedLeave(null);
+      
+      // Show success message
+      setError('Leave request submitted successfully!');
+      setTimeout(() => setError(''), 3000);
+    } catch (err) {
+      console.error('Error saving leave request:', err);
+      setError(err.response?.data?.error || 'Failed to save leave request');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle status change
-  const handleStatusChange = (leave, newStatus) => {
-    setLeaves(prev => prev.map(l => 
-      l.id === leave.id ? { ...l, status: newStatus } : l
-    ));
+  const handleStatusChange = async (leave, newStatus) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Update leave status in backend
+      await api.put(`/api/leaverequests/${leave._id}`, 
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      // Refresh data from server
+      await fetchData();
+      
+      // Show success message
+      setError(`Leave request ${newStatus} successfully`);
+      setTimeout(() => setError(''), 3000);
+    } catch (err) {
+      console.error('Error updating leave status:', err);
+      setError(err.response?.data?.error || 'Failed to update leave status');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle delete leave
-  const handleDeleteLeave = (leaveId) => {
-    setLeaves(prev => prev.filter(leave => leave.id !== leaveId));
+  const handleDeleteLeave = async (leaveId) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Delete leave from backend
+      await api.delete(`/api/leaverequests/${leaveId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Refresh data from server
+      await fetchData();
+      
+      // Show success message
+      setError('Leave request deleted successfully');
+      setTimeout(() => setError(''), 3000);
+    } catch (err) {
+      console.error('Error deleting leave request:', err);
+      setError(err.response?.data?.error || 'Failed to delete leave request');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Get unique departments for filtering
@@ -515,14 +616,7 @@ const LeavePlan = () => {
                 variant="contained" 
                 color="primary"
                 startIcon={<Add />}
-                onClick={() => {
-                  setFormData({
-                    ...formData,
-                    employeeId: selectedEmployee
-                  });
-                  setDialogOpen(true);
-                }}
-                disabled={!selectedEmployee}
+                onClick={() => handleOpenDialog(null)}
                 sx={{ 
                   width: { xs: '48%', md: '220px' }, 
                   height: '45px', 
