@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
-const employeeAnalyticsSchema = new mongoose.Schema({
+const EmployeeAnalyticsSchema = new mongoose.Schema({
   // Time periods
   date: {
     type: Date,
-    required: true,
-    default: Date.now
+    default: Date.now,
+    required: true
   },
   period: {
     type: String,
@@ -18,10 +18,22 @@ const employeeAnalyticsSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  activeEmployees: Number,
-  newHires: Number,
-  separations: Number,
-  turnoverRate: Number,
+  activeEmployees: {
+    type: Number,
+    required: true
+  },
+  newHires: {
+    type: Number,
+    default: 0
+  },
+  separations: {
+    type: Number,
+    default: 0
+  },
+  turnoverRate: {
+    type: Number,
+    default: 0
+  },
   
   // Demographics
   genderDistribution: {
@@ -73,4 +85,4 @@ const employeeAnalyticsSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('EmployeeAnalytics', employeeAnalyticsSchema);
+module.exports = mongoose.model('EmployeeAnalytics', EmployeeAnalyticsSchema);
