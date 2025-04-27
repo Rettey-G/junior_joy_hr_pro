@@ -22,7 +22,7 @@ import {
   Wc
 } from '@mui/icons-material';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, LineElement, PointElement } from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import axios from 'axios';
 
 // Register ChartJS components
@@ -609,7 +609,7 @@ const AnalyticsDashboard = () => {
           scrollButtons={isMobile ? "auto" : false}
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
-          <Tab label="Department" />
+          <Tab label="Turnover Rate" />
           <Tab label="Tenure" />
         </Tabs>
         
@@ -617,20 +617,80 @@ const AnalyticsDashboard = () => {
           {tabValue === 0 && (
             <Box>
               <Typography variant="h6" gutterBottom>
-                Department Distribution
+                Turnover Rate by Worksite
               </Typography>
               <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
-                <Doughnut 
-                  data={departmentData} 
+                <Bar 
+                  data={{
+                    labels: ['Malé Office', 'Hulhumalé Branch', 'Addu City Branch', 'Kulhudhuffushi Branch', 'Fuvahmulah Branch'],
+                    datasets: [
+                      {
+                        label: 'Turnover Rate (%)',
+                        data: [2.1, 3.5, 1.2, 4.0, 1.8],
+                        backgroundColor: ['#2196f3', '#4caf50', '#f44336', '#9c27b0', '#ff9800'],
+                        barThickness: 30,
+                      }
+                    ]
+                  }} 
                   options={{
                     maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        title: {
+                          display: true,
+                          text: 'Rate (%)'
+                        }
+                      }
+                    },
                     plugins: {
                       legend: {
+                        display: true,
                         position: 'top'
                       }
                     }
                   }}
                 />
+              </Box>
+              
+              {/* Add a table with turnover rates */}
+              <Box sx={{ mt: 3, overflow: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Worksite</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Turnover Rate (%)</th>
+                      <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Employees Left</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Malé Office</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>2.1%</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee' }}>3</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Hulhumalé Branch</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>3.5%</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee' }}>4</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Addu City Branch</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>1.2%</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee' }}>1</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Kulhudhuffushi Branch</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>4.0%</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee' }}>2</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Fuvahmulah Branch</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>1.8%</td>
+                      <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee' }}>1</td>
+                    </tr>
+                  </tbody>
+                </table>
               </Box>
             </Box>
           )}

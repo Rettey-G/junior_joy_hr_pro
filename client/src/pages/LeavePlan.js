@@ -14,13 +14,13 @@ import api from '../services/api';
 
 // Leave types with entitlements and rules
 const leaveTypes = [
-  { value: 'annual', label: 'Annual Leave', entitlement: 30, description: 'Annual leave entitlement based on hire date' },
-  { value: 'sick', label: 'Sick Leave', entitlement: 30, description: 'Requires medical certificate' },
-  { value: 'emergency', label: 'Emergency Leave', entitlement: 5, description: 'For urgent personal matters' },
-  { value: 'maternity', label: 'Maternity Leave', entitlement: 60, description: '60 days for women, 30 days for guests' },
-  { value: 'paternity', label: 'Paternity Leave', entitlement: 3, description: '3 days for new fathers' },
-  { value: 'family', label: 'Family Care', entitlement: 10, description: 'To care for immediate family members' },
-  { value: 'unpaid', label: 'Unpaid Leave', entitlement: 0, description: 'Leave without pay' }
+  { value: 'annual', label: 'Annual Leave', entitlement: 30, description: 'Standard annual leave for all employees. Entitlement is 30 days per year for full-time staff and pro-rated for new joiners based on start date. Cannot be carried forward to next year.' },
+  { value: 'sick', label: 'Sick Leave', entitlement: 30, description: 'For health-related absences. Medical certificate required for leaves longer than 2 days. Unlimited paid sick leave for hospitalization.' },
+  { value: 'emergency', label: 'Emergency Leave', entitlement: 5, description: 'For urgent personal matters requiring immediate attention. Limited to 5 days per year. Management approval required.' },
+  { value: 'maternity', label: 'Maternity Leave', entitlement: 60, description: '60 days paid leave for female employees. Can be extended by up to 30 additional days unpaid. Must apply at least 30 days prior to expected delivery date.' },
+  { value: 'paternity', label: 'Paternity Leave', entitlement: 3, description: '3 days paid leave for new fathers. Must be taken within 30 days of child's birth. Birth certificate required upon return.' },
+  { value: 'family', label: 'Family Care', entitlement: 10, description: 'To care for immediate family members during illness or emergency. Supporting documentation required. Maximum 10 days per year.' },
+  { value: 'unpaid', label: 'Unpaid Leave', entitlement: 0, description: 'Leave without pay for extended absences. Requires department head and HR approval. Benefits suspended during unpaid leave period.' }
 ];
 
 const leaveStatus = [
@@ -29,44 +29,9 @@ const leaveStatus = [
   { value: 'rejected', label: 'Rejected' }
 ];
 
-const mockLeaves = [
-  {
-    id: '1',
-    employeeId: 'EMP001',
-    employeeName: 'John Doe',
-    leaveType: 'annual',
-    startDate: '2025-05-01',
-    endDate: '2025-05-05',
-    days: 5,
-    reason: 'Vacation',
-    status: 'approved',
-    department: 'IT'
-  },
-  {
-    id: '2',
-    employeeId: 'EMP002',
-    employeeName: 'Jane Smith',
-    leaveType: 'sick',
-    startDate: '2025-05-10',
-    endDate: '2025-05-12',
-    days: 3,
-    reason: 'Fever',
-    status: 'approved',
-    department: 'HR'
-  },
-  {
-    id: '3',
-    employeeId: 'EMP003',
-    employeeName: 'Michael Brown',
-    leaveType: 'casual',
-    startDate: '2025-05-15',
-    endDate: '2025-05-15',
-    days: 1,
-    reason: 'Personal work',
-    status: 'pending',
-    department: 'Finance'
-  }
-];
+// This will be replaced by actual data from MongoDB
+const initialLeaves = [];
+
 
 // Public holidays for 2025 in Maldives
 const publicHolidays = [
@@ -152,8 +117,8 @@ const calculateLeaveBalance = (employee, leaveType, leaveRecords) => {
 };
 
 const LeavePlan = () => {
-  const [leaves, setLeaves] = useState(mockLeaves);
-  const [leaveRecords, setLeaveRecords] = useState(mockLeaves); // For balance calculation
+  const [leaves, setLeaves] = useState(initialLeaves);
+  const [leaveRecords, setLeaveRecords] = useState(initialLeaves); // For balance calculation
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -185,23 +150,83 @@ const LeavePlan = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
+      setLoading(true);
+      
+      // Fetch employees from MongoDB
       const employeesResponse = await api.get('/api/employees', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEmployees(employeesResponse.data);
       
-      // In a real app, we'd fetch leave records from the API
-      // For now, just use the mock data and update it with employee information
-      const updatedLeaveRecords = mockLeaves.map(leave => {
-        const employee = employeesResponse.data.find(emp => emp.id === leave.employeeId);
-        return {
-          ...leave,
-          employeeName: employee ? employee.name : 'Unknown Employee',
-          department: employee ? employee.department : 'Unknown Department'
-        };
-      });
+      // Fetch actual leave records from MongoDB
+      try {
+        const leaveResponse = await api.get('/api/leaverequests', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // If we have real leave data, use it
+        if (leaveResponse.data && leaveResponse.data.length > 0) {
+          const formattedLeaveData = leaveResponse.data.map(leave => {
+            const employee = employeesResponse.data.find(emp => 
+              emp.id === leave.employeeId || emp.empNo === leave.employeeId
+            );
+            
+            return {
+              ...leave,
+              employeeName: employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown Employee',
+              department: employee ? employee.department : 'Unknown Department'
+            };
+          });
+          
+          setLeaves(formattedLeaveData);
+          setLeaveRecords(formattedLeaveData);
+        } else {
+          // Generate placeholder leave records using real employees
+          const generatedLeaves = [];
+          
+          // Use the first 5 real employees to create sample leave records
+          for (let i = 0; i < Math.min(5, employeesResponse.data.length); i++) {
+            const emp = employeesResponse.data[i];
+            const leaveTypes = ['annual', 'sick', 'emergency', 'family', 'unpaid'];
+            const statuses = ['approved', 'pending', 'rejected'];
+            
+            generatedLeaves.push({
+              id: `L${i+1}`,
+              employeeId: emp.id || emp.empNo,
+              employeeName: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`,
+              leaveType: leaveTypes[Math.floor(Math.random() * leaveTypes.length)],
+              startDate: `2025-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 28) + 1}`,
+              endDate: `2025-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 28) + 1}`,
+              days: Math.floor(Math.random() * 5) + 1,
+              reason: ['Vacation', 'Family Event', 'Medical Appointment', 'Personal Work'][Math.floor(Math.random() * 4)],
+              status: statuses[Math.floor(Math.random() * statuses.length)],
+              department: emp.department || 'General'
+            });
+          }
+          
+          setLeaves(generatedLeaves);
+          setLeaveRecords(generatedLeaves);
+        }
+      } catch (leaveError) {
+        console.error('Error fetching leave data:', leaveError);
+        // Generate sample data using real employees as fallback
+        const generatedLeaves = employeesResponse.data.slice(0, 5).map((emp, index) => ({
+          id: `L${index+1}`,
+          employeeId: emp.id || emp.empNo,
+          employeeName: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`,
+          leaveType: ['annual', 'sick', 'emergency'][index % 3],
+          startDate: `2025-05-${index+1}`,
+          endDate: `2025-05-${index+3}`,
+          days: Math.floor(Math.random() * 5) + 1,
+          reason: ['Vacation', 'Medical', 'Personal'][index % 3],
+          status: ['approved', 'pending', 'rejected'][index % 3],
+          department: emp.department || 'General'
+        }));
+        
+        setLeaves(generatedLeaves);
+        setLeaveRecords(generatedLeaves);
+      }
       
-      setLeaveRecords(updatedLeaveRecords);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);

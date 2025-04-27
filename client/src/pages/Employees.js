@@ -188,29 +188,29 @@ const Employees = () => {
   };
   
   // Handle image upload
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showSnackbar('Image size must be less than 5MB', 'error');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({
-          ...formData,
-          image: reader.result
-        });
-        setImagePreview(reader.result);
-        showSnackbar('Image uploaded successfully', 'success');
-      };
-      reader.onerror = () => {
-        showSnackbar('Error reading file', 'error');
-      };
-      reader.readAsDataURL(file);
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showSnackbar('Image size exceeds 5MB limit', 'error');
+      return;
     }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+      setFormData(prev => ({
+        ...prev,
+        image: e.target.result
+      }));
+      showSnackbar('Image uploaded successfully', 'success');
+    };
+    reader.onerror = () => {
+      showSnackbar('Error reading file', 'error');
+    };
+    reader.readAsDataURL(file);
   };
   
   // Trigger file input click
@@ -220,6 +220,17 @@ const Employees = () => {
   
   // Handle removing the uploaded image
   const handleRemoveImage = () => {
+    setImagePreview(null);
+    // Clear the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    // Update form data to remove image
+    setFormData(prev => ({
+      ...prev,
+      image: null
+    }));
+    showSnackbar('Image removed', 'success');
     setFormData({
       ...formData,
       image: ''
@@ -903,49 +914,67 @@ const Employees = () => {
             {/* Profile Image */}
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
               <Box sx={{ position: 'relative', textAlign: 'center' }}>
-                <Avatar
-                  src={imagePreview || formData.image || (formData.gender === 'Female' ? '/female-placeholder.jpg' : '/male-placeholder.jpg')}
-                  sx={{ 
-                    width: 150, 
-                    height: 150, 
-                    mb: 1, 
-                    border: '3px solid #f0f0f0', 
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                    cursor: 'pointer',
-                    '&:hover': { opacity: 0.9 }
-                  }}
-                  onClick={triggerFileInput}
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  style={{ display: 'none' }}
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<PhotoCamera />}
-                  onClick={triggerFileInput}
-                  size="small"
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: -10,
-                    borderRadius: '20px',
-                    fontSize: '0.7rem',
-                    py: 0.5,
-                    px: 1,
-                    boxShadow: 2
-                  }}
-                >
-                  Upload
-                </Button>
-                <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
-                  Click to upload from computer or phone
-                </Typography>
+                <Paper elevation={3} sx={{ p: 3, borderRadius: 2, maxWidth: 350, mx: 'auto', border: '1px dashed #aaa' }}>
+                  <Avatar
+                    src={imagePreview || formData.image || (formData.gender === 'Female' ? '/female-placeholder.jpg' : '/male-placeholder.jpg')}
+                    sx={{ 
+                      width: 150, 
+                      height: 150, 
+                      mb: 2, 
+                      mx: 'auto',
+                      border: '3px solid #f0f0f0', 
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                      cursor: 'pointer',
+                      '&:hover': { opacity: 0.85, boxShadow: '0 6px 12px rgba(0,0,0,0.3)' }
+                    }}
+                    onClick={triggerFileInput}
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                  />
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                      Employee Photo
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<PhotoCamera />}
+                        onClick={triggerFileInput}
+                        size="small"
+                        sx={{ px: 2 }}
+                      >
+                        Upload Image
+                      </Button>
+                      
+                      {(imagePreview || formData.image) && (
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={handleRemoveImage}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </Box>
+                    
+                    <Typography variant="caption" display="block" sx={{ mt: 2, color: 'text.secondary' }}>
+                      Click to upload from computer or phone camera
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>
+                      Supports JPG, PNG (max 5MB)
+                    </Typography>
+                  </Box>
+                </Paper>
               </Box>
             </Grid>
             
