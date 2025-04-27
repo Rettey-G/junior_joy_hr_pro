@@ -245,14 +245,19 @@ const LeavePlan = () => {
     setLoading(true);
     setError('');
     try {
-      // Mock data for now
-      // In a real implementation, this would be an API call
-      setTimeout(() => {
-        setLeaves(mockLeaves);
-        setLoading(false);
-      }, 500);
+      // Apply filters to the existing leave records
+      const filteredLeaves = leaveRecords.filter(leave => {
+        if (filters.department && leave.department !== filters.department) return false;
+        if (filters.status && leave.status !== filters.status) return false;
+        if (filters.type && leave.leaveType !== filters.type) return false;
+        return true;
+      });
+      
+      // Update leaves with filtered data
+      setLeaves(filteredLeaves);
+      setLoading(false);
     } catch (err) {
-      setError('Failed to fetch leave data');
+      setError('Failed to filter leave data');
       setLoading(false);
     }
   };
