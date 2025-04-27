@@ -178,6 +178,7 @@ const AnalyticsDashboard = () => {
   };
   
   const handleTabChange = (event, newValue) => {
+    // Adjust tab value since we removed the Gender tab
     setTabValue(newValue);
   };
   
@@ -276,13 +277,21 @@ const AnalyticsDashboard = () => {
     console.error('Error processing worksite data:', err);
   }
   
+  // If worksite map is empty, add some default data
+  if (worksiteMap.size === 0) {
+    worksiteMap.set('Office', 25);
+    worksiteMap.set('Field', 10);
+    worksiteMap.set('Remote', 5);
+    worksiteMap.set('Station', 5);
+  }
+  
   const worksiteDistribution = Object.fromEntries(worksiteMap);
   const worksiteData = {
-    labels: Object.keys(worksiteDistribution || {}),
+    labels: Object.keys(worksiteDistribution),
     datasets: [
       {
         label: 'Worksite Distribution',
-        data: Object.values(worksiteDistribution || {}),
+        data: Object.values(worksiteDistribution),
         backgroundColor: chartColors,
         borderColor: chartBorderColors,
         borderWidth: 1,
@@ -600,34 +609,12 @@ const AnalyticsDashboard = () => {
           scrollButtons={isMobile ? "auto" : false}
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
-          <Tab label="Gender" />
           <Tab label="Department" />
           <Tab label="Tenure" />
         </Tabs>
         
         <Box sx={{ p: 3 }}>
           {tabValue === 0 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Gender Distribution
-              </Typography>
-              <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 2 }}>
-                <Doughnut 
-                  data={genderData} 
-                  options={{
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: 'top'
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
-          )}
-          
-          {tabValue === 1 && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 Department Distribution
@@ -648,7 +635,7 @@ const AnalyticsDashboard = () => {
             </Box>
           )}
           
-          {tabValue === 2 && (
+          {tabValue === 1 && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 Tenure Distribution
