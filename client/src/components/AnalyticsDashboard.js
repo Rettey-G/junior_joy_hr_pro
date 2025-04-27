@@ -69,12 +69,13 @@ const AnalyticsDashboard = () => {
     fetchAnalyticsData();
   }, [apiUrl]);
   
+  // Define a variable to store employee data that can be used elsewhere in the component
+  let employeeData = [];
+
   // Generate analytics from local employee data if API fails
   const generateLocalAnalytics = async () => {
     try {
       // Try to fetch employee data from API first
-      let employeeData = [];
-      
       try {
         const token = localStorage.getItem('token');
         const employeeResponse = await axios.get(`${apiUrl}/api/employees`, {
@@ -259,8 +260,23 @@ const AnalyticsDashboard = () => {
     ]
   };
   
-  // Prepare worksite distribution data if available
-  const worksiteDistribution = {};
+  // Prepare worksite distribution data from employee data
+  const worksiteMap = new Map();
+  try {
+    // Extract worksite data from employees
+    if (employeeData && employeeData.length) {
+      employeeData.forEach(emp => {
+        if (emp.workSite) {
+          const site = emp.workSite;
+          worksiteMap.set(site, (worksiteMap.get(site) || 0) + 1);
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error processing worksite data:', err);
+  }
+  
+  const worksiteDistribution = Object.fromEntries(worksiteMap);
   const worksiteData = {
     labels: Object.keys(worksiteDistribution || {}),
     datasets: [
@@ -308,7 +324,7 @@ const AnalyticsDashboard = () => {
       </Box>
 
       {/* Key Metrics */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 3 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 3, justifyContent: 'center' }}>
         <Grid item xs={6} sm={3}>
           <Paper variant="outlined" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
@@ -366,32 +382,54 @@ const AnalyticsDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Distribution Charts */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {/* Distribution Charts with Tables */}
+      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
         <Grid item xs={12} md={6}>
           <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Business fontSize="small" sx={{ mr: 1 }} />
               <Typography variant="h6">Department Distribution</Typography>
             </Box>
-            <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Doughnut 
-                data={departmentData} 
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        font: {
-                          size: 10
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={7}>
+                <Box sx={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={departmentData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            font: { size: 10 }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            </Box>
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <Box sx={{ height: 220, overflow: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Department</th>
+                        <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(analyticsData.departmentDistribution || {}).map(([dept, count]) => (
+                        <tr key={dept}>
+                          <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{dept}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
@@ -401,53 +439,103 @@ const AnalyticsDashboard = () => {
               <Public fontSize="small" sx={{ mr: 1 }} />
               <Typography variant="h6">Nationality Distribution</Typography>
             </Box>
-            <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Doughnut 
-                data={nationalityData} 
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        font: {
-                          size: 10
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={7}>
+                <Box sx={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={nationalityData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            font: { size: 10 }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            </Box>
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <Box sx={{ height: 220, overflow: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Nationality</th>
+                        <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(analyticsData.nationalityDistribution || {}).map(([nationality, count]) => (
+                        <tr key={nationality}>
+                          <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{nationality}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
         <Grid item xs={12} md={6}>
           <Paper variant="outlined" sx={{ p: 2, height: '100%', boxShadow: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Wc fontSize="small" sx={{ mr: 1 }} />
               <Typography variant="h6">Gender Distribution</Typography>
             </Box>
-            <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Doughnut 
-                data={genderData} 
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        font: {
-                          size: 10
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={7}>
+                <Box sx={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={genderData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            font: { size: 10 }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            </Box>
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <Box sx={{ height: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Gender</th>
+                        <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Male</td>
+                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.male || 0}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Female</td>
+                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.female || 0}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Other</td>
+                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.other || 0}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
@@ -457,24 +545,46 @@ const AnalyticsDashboard = () => {
               <Business fontSize="small" sx={{ mr: 1 }} />
               <Typography variant="h6">Worksite Distribution</Typography>
             </Box>
-            <Box sx={{ height: 250, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Doughnut 
-                data={worksiteData} 
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                      labels: {
-                        font: {
-                          size: 10
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={7}>
+                <Box sx={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Doughnut 
+                    data={worksiteData} 
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            font: { size: 10 }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            </Box>
+                    }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <Box sx={{ height: 220, overflow: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Worksite</th>
+                        <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #ddd' }}>Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(worksiteDistribution || {}).map(([site, count]) => (
+                        <tr key={site}>
+                          <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{site}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>
