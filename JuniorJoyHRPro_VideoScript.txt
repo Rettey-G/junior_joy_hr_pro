@@ -231,3 +231,13 @@
 3. Professional video editing software
 4. High-quality stock footage for office environment shots
 5. Animation software for logo introduction
+
+
+Username: admin
+Password: Admin@123
+HR User:
+Username: hr
+Password: Hr@123
+Employee User:
+Username: employee
+Password: Employee@123

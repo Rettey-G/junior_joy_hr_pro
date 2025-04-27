@@ -3,88 +3,112 @@ const router = express.Router();
 const Leave = require('../models/Leave');
 const auth = require('../middleware/auth');
 
-// GET all leave requests with optional filtering
+// Get all leaves for the logged-in user
 router.get('/', auth, async (req, res) => {
   try {
-    // Extract filter parameters from query
-    const { employeeId, status, leaveType, department } = req.query;
-    
-    // Build query object
-    const query = {};
-    if (employeeId) query.employeeId = employeeId;
-    if (status) query.status = status;
-    if (leaveType) query.leaveType = leaveType;
-    if (department) query.department = department;
-    
-    const leaves = await Leave.find(query).sort({ createdAt: -1 });
+    const leaves = await Leave.find({ employee: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('approvedBy', 'username firstName lastName');
     res.json(leaves);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error fetching leaves:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET leave request by ID
-router.get('/:id', auth, async (req, res) => {
+// Get all leaves (for HR/Admin)
+router.get('/all', auth, async (req, res) => {
   try {
-    const leave = await Leave.findById(req.params.id);
-    if (!leave) return res.status(404).json({ error: 'Leave request not found' });
-    res.json(leave);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    const leaves = await Leave.find()
+      .sort({ createdAt: -1 })
+      .populate('employee', 'username firstName lastName')
+      .populate('approvedBy', 'username firstName lastName');
+    res.json(leaves);
+  } catch (error) {
+    console.error('Error fetching all leaves:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// POST create leave request
+// Create a new leave request
 router.post('/', auth, async (req, res) => {
   try {
-    // Format dates if they come as strings
-    if (req.body.startDate) {
-      req.body.startDate = new Date(req.body.startDate);
-    }
-    if (req.body.endDate) {
-      req.body.endDate = new Date(req.body.endDate);
-    }
-    
-    const leave = new Leave(req.body);
+    const { leaveType, startDate, endDate, reason } = req.body;
+
+    const leave = new Leave({
+      employee: req.user.id,
+      leaveType,
+      startDate,
+      endDate,
+      reason,
+      status: 'pending'
+    });
+
     await leave.save();
     res.status(201).json(leave);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    console.error('Error creating leave request:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// PUT update leave request (e.g., approve/reject)
-router.put('/:id', auth, async (req, res) => {
+// Update leave status (for HR/Admin)
+router.patch('/:id/status', auth, async (req, res) => {
   try {
-    // Format dates if they come as strings
-    if (req.body.startDate) {
-      req.body.startDate = new Date(req.body.startDate);
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
     }
-    if (req.body.endDate) {
-      req.body.endDate = new Date(req.body.endDate);
+
+    const { status } = req.body;
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
     }
-    
-    const leave = await Leave.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!leave) return res.status(404).json({ error: 'Leave request not found' });
+
+    const leave = await Leave.findById(req.params.id);
+    if (!leave) {
+      return res.status(404).json({ message: 'Leave request not found' });
+    }
+
+    leave.status = status;
+    leave.approvedBy = req.user.id;
+    leave.approvalDate = Date.now();
+
+    await leave.save();
     res.json(leave);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    console.error('Error updating leave status:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// DELETE leave request
+// Delete a leave request (only if pending)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const leave = await Leave.findByIdAndDelete(req.params.id);
-    if (!leave) return res.status(404).json({ error: 'Leave request not found' });
-    res.json({ message: 'Leave request deleted successfully', leave });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const leave = await Leave.findById(req.params.id);
+    
+    if (!leave) {
+      return res.status(404).json({ message: 'Leave request not found' });
+    }
+
+    // Only allow deletion if the user owns the request or is admin/hr
+    if (leave.employee.toString() !== req.user.id && !['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Only allow deletion of pending requests
+    if (leave.status !== 'pending') {
+      return res.status(400).json({ message: 'Cannot delete non-pending leave requests' });
+    }
+
+    await leave.remove();
+    res.json({ message: 'Leave request deleted' });
+  } catch (error) {
+    console.error('Error deleting leave request:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

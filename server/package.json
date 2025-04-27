@@ -8,7 +8,7 @@
     "dev": "nodemon index.js"
   },
   "config": {
-    "mongodbUri": "mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/jjoyHR?retryWrites=true&w=majority&appName=Cluster0"
+    "mongodbUri": "mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0"
   },
   "keywords": [],
   "author": "",

@@ -18,6 +18,7 @@ import OrgChart from './pages/OrgChart';
 import Reports from './pages/Reports';
 import TimeAttendance from './pages/TimeAttendance';
 import Training from './pages/Training';
+import LeavePage from './pages/LeavePage';
 
 // Components
 import Navbar from './components/Navbar';
@@ -137,6 +138,7 @@ function App() {
               <Route path="/reports" element={isAuthenticated() && isAdmin() ? <Reports /> : <Navigate to="/" />} />
               <Route path="/time-attendance" element={isAuthenticated() ? <TimeAttendance /> : <Navigate to="/login" />} />
               <Route path="/training" element={isAuthenticated() ? <Training /> : <Navigate to="/login" />} />
+              <Route path="/leave" element={isAuthenticated() ? <LeavePage /> : <Navigate to="/login" />} />
             </Routes>
           </ResponsiveContainer>
         </Box>

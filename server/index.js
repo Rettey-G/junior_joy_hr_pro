@@ -76,6 +76,7 @@ const employeeRoutes = require('./routes/employees');
 const userRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
 const leaveRoutes = require('./routes/leaves');
+const trainingRoutes = require('./routes/trainings');
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -83,6 +84,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/leaverequests', leaveRoutes);
+app.use('/api/trainings', trainingRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
