@@ -543,10 +543,7 @@ const LeavePlan = () => {
                   fontSize: { xs: '0.9rem', md: '1rem' },
                   borderRadius: 2
                 }}
-                size="large"
-              >
-                APPLY FOR LEAVE
-              </Button>
+        </Paper>
         <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
           <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
         </Paper>
@@ -555,8 +552,6 @@ const LeavePlan = () => {
         </Paper>
       </Box>
     </Box>
-    
-    {/* Employee selection and leave balance - improved mobile responsiveness */}
     <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
