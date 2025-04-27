@@ -238,6 +238,11 @@ const LeavePlan = () => {
   // Initial data load
   useEffect(() => {
     fetchData();
+    // Auto-select logged-in employee for non-admin/HR users
+    if (!isAdmin) {
+      const empNo = localStorage.getItem('empNo');
+      if (empNo) setSelectedEmployee(empNo);
+    }
   }, []);
 
   // Fetch real leave data from backend (to be implemented)
@@ -445,6 +450,14 @@ const LeavePlan = () => {
               <FormControl fullWidth size="large" variant="outlined">
                 <InputLabel>Employee Name</InputLabel>
                 <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                   value={selectedEmployee}
                   label="Employee Name"
                   sx={{ 
@@ -622,9 +635,17 @@ const LeavePlan = () => {
         <Paper sx={{ p: 2, mb: 3 }}>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ minWidth: '220px' }}>
                 <InputLabel>Department</InputLabel>
                 <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                   name="department"
                   value={filters.department}
                   label="Department"
@@ -639,9 +660,17 @@ const LeavePlan = () => {
             </Grid>
             
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ minWidth: '220px' }}>
                 <InputLabel>Status</InputLabel>
                 <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                   name="status"
                   value={filters.status}
                   label="Status"
@@ -656,9 +685,17 @@ const LeavePlan = () => {
             </Grid>
             
             <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{ minWidth: '220px' }}>
                 <InputLabel>Leave Type</InputLabel>
                 <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                   name="type"
                   value={filters.type}
                   label="Leave Type"
@@ -673,7 +710,8 @@ const LeavePlan = () => {
             </Grid>
             
             <Grid item xs={12} md={3}>
-              {isAdmin && (
+               {/* Always show for employees, only for admins if isAdmin */}
+              {(isAdmin || selectedEmployee) && (
                 <Button 
                   variant="contained" 
                   color="primary" 
@@ -681,7 +719,19 @@ const LeavePlan = () => {
                   fullWidth
                   onClick={() => handleOpenDialog()}
                 >
-                  Add Leave
+                  {isAdmin ? 'Add Leave' : 'Apply for Leave'}
+                </Button>
+              )}
+              {/* Show View Leave Balance button for employees */}
+              {!isAdmin && selectedEmployee && (
+                <Button
+                  variant="contained"
+                  color="info"
+                  fullWidth
+                  sx={{ mt: 2, fontWeight: 'bold', fontSize: '1rem' }}
+                  onClick={() => setLeaveBalanceDialogOpen(true)}
+                >
+                  View Leave Balance
                 </Button>
               )}
             </Grid>
@@ -861,6 +911,14 @@ const LeavePlan = () => {
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Employee</InputLabel>
                   <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                     name="employeeId"
                     value={formData.employeeId}
                     label="Employee"
@@ -879,6 +937,14 @@ const LeavePlan = () => {
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Leave Type</InputLabel>
                   <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                     name="leaveType"
                     value={formData.leaveType}
                     label="Leave Type"
@@ -929,6 +995,14 @@ const LeavePlan = () => {
                   <FormControl fullWidth margin="normal">
                     <InputLabel>Status</InputLabel>
                     <Select
+  MenuProps={{
+    PaperProps: {
+      style: {
+        maxHeight: 250,
+        minWidth: 220,
+      },
+    },
+  }}
                       name="status"
                       value={formData.status}
                       label="Status"
