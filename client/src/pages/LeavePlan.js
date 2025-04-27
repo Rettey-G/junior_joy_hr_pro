@@ -392,14 +392,6 @@ const LeavePlan = () => {
   // Get unique departments for filtering
   const departments = [...new Set(leaves.map(leave => leave.department))];
   
-  // Apply any filtering based on the current filter settings
-  // (filteredLeaves is declared only once here)
-  const filteredLeaves = leaves.filter(leave => {
-    if (filters.department && leave.department !== filters.department) return false;
-    if (filters.status && leave.status !== filters.status) return false;
-    if (filters.type && leave.leaveType !== filters.type) return false;
-    return true;
-  });
 
   // Calculate leave statistics with improved filtering
   const stats = {
