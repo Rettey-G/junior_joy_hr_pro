@@ -1,9 +1,13 @@
-const admin = (req, res, next) => {
-  // Check if user exists and has admin role
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
-  }
-  next();
+const adminAccess = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admin role required' });
+    }
+
+    next();
 };
 
-module.exports = admin; 
+module.exports = adminAccess; 

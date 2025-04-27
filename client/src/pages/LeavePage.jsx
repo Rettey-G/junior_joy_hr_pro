@@ -20,7 +20,10 @@ import {
   TextField,
   MenuItem,
   Snackbar,
-  Alert
+  Alert,
+  Card,
+  CardContent,
+  Chip
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -28,6 +31,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 const LeavePage = () => {
   const [leaves, setLeaves] = useState([]);
+  const [leaveBalances, setLeaveBalances] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [formData, setFormData] = useState({
@@ -39,12 +43,13 @@ const LeavePage = () => {
 
   useEffect(() => {
     fetchLeaves();
+    fetchLeaveBalances();
   }, []);
 
   const fetchLeaves = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/leaverequests', {
+      const response = await axios.get('/api/leaves', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLeaves(response.data);
@@ -54,19 +59,33 @@ const LeavePage = () => {
     }
   };
 
+  const fetchLeaveBalances = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/leaves/balances', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLeaveBalances(response.data);
+    } catch (error) {
+      console.error('Error fetching leave balances:', error);
+      showSnackbar('Error fetching leave balances', 'error');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/leaverequests', formData, {
+      await axios.post('/api/leaves', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOpenDialog(false);
       showSnackbar('Leave request submitted successfully', 'success');
       fetchLeaves();
+      fetchLeaveBalances();
     } catch (error) {
       console.error('Error submitting leave request:', error);
-      showSnackbar('Error submitting leave request', 'error');
+      showSnackbar(error.response?.data?.message || 'Error submitting leave request', 'error');
     }
   };
 
@@ -76,6 +95,17 @@ const LeavePage = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'warning',
+      approved: 'success',
+      rejected: 'error',
+      cancelled: 'default',
+      forfeited: 'secondary'
+    };
+    return colors[status] || 'default';
   };
 
   return (
@@ -88,6 +118,30 @@ const LeavePage = () => {
               Request Leave
             </Button>
           </Box>
+
+          {/* Leave Balances */}
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            {leaveBalances.map((balance) => (
+              <Grid item xs={12} sm={6} md={4} key={balance._id}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {balance.leaveType.name}
+                    </Typography>
+                    <Typography variant="body1">
+                      Total Days: {balance.totalDays}
+                    </Typography>
+                    <Typography variant="body1">
+                      Used Days: {balance.usedDays}
+                    </Typography>
+                    <Typography variant="body1" color="primary">
+                      Remaining Days: {balance.remainingDays}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
           
           <TableContainer component={Paper}>
             <Table>
@@ -97,6 +151,7 @@ const LeavePage = () => {
                   <TableCell>Start Date</TableCell>
                   <TableCell>End Date</TableCell>
                   <TableCell>Days</TableCell>
+                  <TableCell>Forfeited Days</TableCell>
                   <TableCell>Reason</TableCell>
                   <TableCell>Status</TableCell>
                 </TableRow>
@@ -104,12 +159,25 @@ const LeavePage = () => {
               <TableBody>
                 {leaves.map((leave) => (
                   <TableRow key={leave._id}>
-                    <TableCell>{leave.leaveType}</TableCell>
+                    <TableCell>{leave.leaveType.name}</TableCell>
                     <TableCell>{new Date(leave.startDate).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(leave.endDate).toLocaleDateString()}</TableCell>
                     <TableCell>{leave.days}</TableCell>
+                    <TableCell>
+                      {leave.forfeitedDays > 0 && (
+                        <Typography color="error">
+                          {leave.forfeitedDays}
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>{leave.reason}</TableCell>
-                    <TableCell>{leave.status}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={leave.status} 
+                        color={getStatusColor(leave.status)}
+                        size="small"
+                      />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -131,11 +199,15 @@ const LeavePage = () => {
               margin="normal"
               required
             >
-              <MenuItem value="annual">Annual Leave</MenuItem>
-              <MenuItem value="sick">Sick Leave</MenuItem>
-              <MenuItem value="emergency">Emergency Leave</MenuItem>
-              <MenuItem value="family">Family Leave</MenuItem>
-              <MenuItem value="unpaid">Unpaid Leave</MenuItem>
+              {leaveBalances.map((balance) => (
+                <MenuItem 
+                  key={balance.leaveType._id} 
+                  value={balance.leaveType._id}
+                  disabled={balance.remainingDays === 0}
+                >
+                  {balance.leaveType.name} ({balance.remainingDays} days remaining)
+                </MenuItem>
+              ))}
             </TextField>
 
             <LocalizationProvider dateAdapter={AdapterDateFns}>

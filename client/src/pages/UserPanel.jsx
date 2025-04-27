@@ -22,6 +22,8 @@ import {
   Typography,
   Paper,
   IconButton,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -32,11 +34,14 @@ const UserPanel = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'employee',
   });
 
   const [editFormData, setEditFormData] = useState({
@@ -51,21 +56,27 @@ const UserPanel = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/users', {
+      const response = await axios.get('http://localhost:5000/api/users', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
+      setError(error.response?.data?.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setError(null);
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/users', formData, {
+      const response = await axios.post('http://localhost:5000/api/users', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers([...users, response.data]);
@@ -74,52 +85,68 @@ const UserPanel = () => {
         username: '',
         email: '',
         password: '',
-        role: 'user',
+        role: 'employee',
       });
     } catch (error) {
       console.error('Error creating user:', error);
+      setError(error.response?.data?.message || 'Failed to create user');
     }
   };
 
-  const handleEdit = async (e) => {
-    e.preventDefault();
+  const handleEdit = async () => {
     try {
+      setError(null);
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/users/${selectedUser._id}`, editFormData, {
+      await axios.put(`http://localhost:5000/api/users/${selectedUser._id}`, editFormData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUsers(users.map(user => 
-        user._id === selectedUser._id ? response.data : user
-      ));
       setOpenEditDialog(false);
+      fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
+      setError(error.response?.data?.message || 'Failed to update user');
     }
   };
 
   const handleDelete = async (userId) => {
     try {
+      setError(null);
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/users/${userId}`, {
+      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUsers(users.filter(user => user._id !== userId));
+      fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
+      setError(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ p: 3 }}>
+    <Box p={3}>
       <Typography variant="h4" gutterBottom>
         User Management
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Button
         variant="contained"
         color="primary"
         onClick={() => setOpenDialog(true)}
-        sx={{ mb: 3 }}
+        sx={{ mb: 2 }}
       >
         Add New User
       </Button>
@@ -154,10 +181,7 @@ const UserPanel = () => {
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(user._id)}
-                    color="error"
-                  >
+                  <IconButton onClick={() => handleDelete(user._id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -170,90 +194,89 @@ const UserPanel = () => {
       {/* Add User Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Add New User</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Username"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-              />
-              <TextField
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-              <TextField
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-              <FormControl>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  value={formData.role}
-                  label="Role"
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                >
-                  <MenuItem value="admin">Admin</MenuItem>
-                  <MenuItem value="user">User</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              Add User
-            </Button>
-          </DialogActions>
-        </form>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Username"
+            fullWidth
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Email"
+            type="email"
+            fullWidth
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="hr">HR</MenuItem>
+              <MenuItem value="employee">Employee</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmit} color="primary">
+            Add User
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Edit User Dialog */}
       <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
         <DialogTitle>Edit User</DialogTitle>
-        <form onSubmit={handleEdit}>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Username"
-                value={editFormData.username}
-                onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
-                required
-              />
-              <TextField
-                label="Email"
-                type="email"
-                value={editFormData.email}
-                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                required
-              />
-              <FormControl>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  value={editFormData.role}
-                  label="Role"
-                  onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
-                >
-                  <MenuItem value="admin">Admin</MenuItem>
-                  <MenuItem value="user">User</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              Save Changes
-            </Button>
-          </DialogActions>
-        </form>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Username"
+            fullWidth
+            value={editFormData.username}
+            onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Email"
+            type="email"
+            fullWidth
+            value={editFormData.email}
+            onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={editFormData.role}
+              onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="hr">HR</MenuItem>
+              <MenuItem value="employee">Employee</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          <Button onClick={handleEdit} color="primary">
+            Save Changes
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

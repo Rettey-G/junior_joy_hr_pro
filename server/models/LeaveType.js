@@ -1,33 +1,39 @@
 const mongoose = require('mongoose');
 
-const leaveTypeSchema = new mongoose.Schema({
+const LeaveTypeSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    unique: true
+    required: [true, 'Leave type name is required'],
+    trim: true,
+    unique: true,
+    index: true
+  },
+  description: {
+    type: String,
+    trim: true
   },
   defaultDays: {
     type: Number,
-    required: true
+    required: [true, 'Default days are required'],
+    min: [0, 'Default days cannot be negative']
   },
-  description: String,
-  genderSpecific: {
+  carryForward: {
     type: Boolean,
     default: false
   },
-  gender: {
-    type: String,
-    enum: ['male', 'female', 'all'],
-    default: 'all'
-  },
-  proRated: {
+  paid: {
     type: Boolean,
-    default: true
+    default: false
   },
   active: {
     type: Boolean,
     default: true
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('LeaveType', leaveTypeSchema); 
+// Add index for faster queries
+LeaveTypeSchema.index({ name: 1 });
+
+module.exports = mongoose.model('LeaveType', LeaveTypeSchema); 

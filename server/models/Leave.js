@@ -23,13 +23,17 @@ const leaveSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  forfeitedDays: {
+    type: Number,
+    default: 0
+  },
   reason: {
     type: String,
     required: true
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'cancelled'],
+    enum: ['pending', 'approved', 'rejected', 'cancelled', 'forfeited'],
     default: 'pending'
   },
   attachments: [{
@@ -71,7 +75,7 @@ leaveSchema.pre('save', async function(next) {
   next();
 });
 
-// Validation middleware to check leave balance
+// Validation middleware to check leave balance and calculate forfeited days
 leaveSchema.pre('save', async function(next) {
   if (this.isNew || this.isModified('status')) {
     const LeaveBalance = mongoose.model('LeaveBalance');
@@ -87,8 +91,18 @@ leaveSchema.pre('save', async function(next) {
       throw new Error('No leave balance found for this leave type');
     }
 
-    if (this.status === 'approved' && this.days > balance.remainingDays) {
-      throw new Error('Insufficient leave balance');
+    // Calculate forfeited days if requested days exceed balance
+    if (this.days > balance.remainingDays) {
+      this.forfeitedDays = this.days - balance.remainingDays;
+      this.status = 'forfeited';
+    }
+
+    // Update leave balance if approved
+    if (this.status === 'approved') {
+      const daysToDeduct = Math.min(this.days, balance.remainingDays);
+      balance.usedDays += daysToDeduct;
+      balance.remainingDays -= daysToDeduct;
+      await balance.save();
     }
   }
   next();
