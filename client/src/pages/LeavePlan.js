@@ -421,7 +421,10 @@ const LeavePlan = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ p: 3 }}>
+        {/* Page header */}
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>Leave Management</Typography>
+        
+        {/* Header with statistics summary */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 3 }}>
           <Typography variant="subtitle1" color="text.secondary">
             Manage leave requests and view leave balances
@@ -439,17 +442,8 @@ const LeavePlan = () => {
             </Paper>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-          <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
-            <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
-          </Paper>
-          <Paper sx={{ px: 2, py: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 2 }}>
-            <Typography variant="body2"><strong>{stats.approved}</strong> Approved</Typography>
-          </Paper>
-        </Box>
-        </Box>
         
-        {/* Employee selection and leave balance - improved mobile responsiveness */}
+        {/* Employee selection and leave application section */}
         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -459,21 +453,22 @@ const LeavePlan = () => {
               <FormControl fullWidth size="large" variant="outlined">
                 <InputLabel>Employee Name</InputLabel>
                 <Select
-  MenuProps={{
-    PaperProps: {
-      style: {
-        maxHeight: 250,
-        minWidth: 220,
-      },
-    },
-  }}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 250,
+                        minWidth: 220,
+                      },
+                    },
+                  }}
                   value={selectedEmployee}
                   label="Employee Name"
                   sx={{ 
                     borderRadius: 2,
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': { borderRadius: 2 }
-                    }
+                    },
+                    minWidth: 300
                   }}
                   onChange={(e) => {
                     setSelectedEmployee(e.target.value);
@@ -491,15 +486,7 @@ const LeavePlan = () => {
                     }
                   }}
                   displayEmpty
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300
-                      },
-                    },
-                  }}
                   disabled={loading || employees.length === 0}
-                  sx={{ minWidth: 300 }}
                 >
                   <MenuItem value="">
                     <em>Select an employee</em>
@@ -543,130 +530,50 @@ const LeavePlan = () => {
                   fontSize: { xs: '0.9rem', md: '1rem' },
                   borderRadius: 2
                 }}
-                size="large"
-              >
-                APPLY FOR LEAVE
-              </Button>
-            </Grid>
           </Grid>
           
-          {/* Stats Section */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-            <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
-              <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
-            </Paper>
-            <Paper sx={{ px: 2, py: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 2 }}>
-              <Typography variant="body2"><strong>{stats.approved}</strong> Approved</Typography>
-            </Paper>
-          </Box>
-        </Box>
-      </Box>
-      
-      {/* Employee selection and leave balance section */}
-      <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Typography variant="subtitle1" gutterBottom fontWeight="bold" color="primary.main">
-            Select Employee to View/Apply for Leave
-          </Typography>
-          <FormControl fullWidth size="large" variant="outlined">
-            <InputLabel>Employee Name</InputLabel>
-            <Select
-MenuProps={{
-  PaperProps: {
-    style: {
-      maxHeight: 250,
-      minWidth: 220,
-    },
-  },
-}}
-              value={selectedEmployee}
-              label="Employee Name"
-              sx={{ 
-                borderRadius: 2,
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderRadius: 2 }
-                }
-              }}
-              onChange={(e) => {
-                setSelectedEmployee(e.target.value);
-                if (e.target.value) {
-                  // Calculate and show leave balances for selected employee with improved calculation
-                  const employee = employees.find(emp => emp.id === e.target.value);
-                  if (employee) {
-                    // Calculate accurate balances for each leave type
-                    const balances = {};
-                    leaveTypes.forEach(type => {
-                      balances[type.value] = calculateLeaveBalance(employee, type.value, leaveRecords);
-                    });
-                    setLeaveBalances(balances);
-                  }
-                }
-              }}
-              displayEmpty
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 300
-                  },
-                },
-              }}
-              disabled={loading || employees.length === 0}
-              sx={{ minWidth: 300 }}
+          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2, justifyContent: { xs: 'space-between', md: 'center' }, alignItems: { xs: 'center', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
+            <Button 
+              variant="outlined" 
+              startIcon={<CalendarMonth />}
+              onClick={() => handlePublicHolidayDialogOpen()}
+              sx={{ width: { xs: '48%', md: '220px' }, height: '45px', borderRadius: 2 }}
+              size="large"
             >
-              <MenuItem value="">
-                <em>Select an employee</em>
-              </MenuItem>
-              {employees.map(employee => (
-                <MenuItem key={employee.id} value={employee.id}>
-                  <strong>{employee.id}</strong> - {employee.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              PUBLIC HOLIDAYS
+            </Button>
+            
+            <Button 
+              variant="contained" 
+              color="primary"
+              startIcon={<Add />}
+              onClick={() => {
+                setFormData({
+                  ...formData,
+                  employeeId: selectedEmployee
+                });
+                setDialogOpen(true);
+              }}
+              disabled={!selectedEmployee}
+              sx={{ 
+                width: { xs: '48%', md: '220px' }, 
+                height: '45px', 
+                fontWeight: 'bold',
+                fontSize: { xs: '0.9rem', md: '1rem' },
+                borderRadius: 2
+              }}
+              size="large"
+            >
+              APPLY FOR LEAVE
+            </Button>
+          </Grid>
         </Grid>
-        
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2, justifyContent: { xs: 'space-between', md: 'center' }, alignItems: { xs: 'center', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
-          <Button 
-            variant="outlined" 
-            startIcon={<CalendarMonth />}
-            onClick={() => handlePublicHolidayDialogOpen()}
-            sx={{ width: { xs: '48%', md: '220px' }, height: '45px', borderRadius: 2 }}
-            size="large"
-          >
-            PUBLIC HOLIDAYS
-          </Button>
-          
-          <Button 
-            variant="contained" 
-            color="primary"
-            startIcon={<Add />}
-            onClick={() => {
-              setFormData({
-                ...formData,
-                employeeId: selectedEmployee
-              });
-              setDialogOpen(true);
-            }}
-            disabled={!selectedEmployee}
-            sx={{ 
-              width: { xs: '48%', md: '220px' }, 
-              height: '45px', 
-              fontWeight: 'bold',
-              fontSize: { xs: '0.9rem', md: '1rem' },
-              borderRadius: 2
-            }}
-            size="large"
-          >
-            APPLY FOR LEAVE
-          </Button>
-        </Grid>
-      </Grid>
+      </Paper>
       
       {/* Always show leave balances for selected employee below selection area */}
       <Box sx={{ mt: 3 }}>
         {selectedEmployee && Object.keys(leaveBalances).length > 0 ? (
-          <>
+          <Paper sx={{ p: 2, borderRadius: 2, boxShadow: 3 }}>
             <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ mb: 2 }}>
               Leave Balances for {employees.find(emp => emp.id === selectedEmployee)?.name}
             </Typography>
