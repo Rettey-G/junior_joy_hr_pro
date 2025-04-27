@@ -51,7 +51,7 @@ const userRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
 const leaveRoutes = require('./routes/leaves');
 
-// API routes - should come before static file serving
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
@@ -60,13 +60,20 @@ app.use('/api/leaverequests', leaveRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files
-  const staticPath = path.join(__dirname, '../client/build');
-  app.use(express.static(staticPath));
-
-  // Handle React routing, return all requests to React app
-  app.get('/*', function(req, res) {
-    res.sendFile(path.join(staticPath, 'index.html'));
+  // Serve static files from the React app
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  // For any request that doesn't match an API route or static file
+  app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+} else {
+  // Handle 404 routes in development
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Route not found' });
   });
 }
 
@@ -74,11 +81,6 @@ if (process.env.NODE_ENV === 'production') {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// Handle 404 routes - should be last
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
 });
 
 const PORT = process.env.PORT || 5000;
