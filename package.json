@@ -1,9 +1,31 @@
 {
+  "name": "junior_joy_hr_pro",
+  "version": "1.0.0",
+  "description": "HR Management System",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "install-client": "cd client && npm install",
+    "install-server": "cd server && npm install",
+    "build": "cd client && npm run build",
+    "heroku-postbuild": "npm run install-client && npm run build"
+  },
   "dependencies": {
-    "@emotion/styled": "^11.14.0",
-    "mongodb": "^6.16.0",
-    "mongoose": "^8.14.0",
-    "react-organizational-chart": "^2.2.1",
-    "uuid": "^11.1.0"
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
