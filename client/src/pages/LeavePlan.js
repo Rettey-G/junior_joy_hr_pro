@@ -535,7 +535,9 @@ const LeavePlan = () => {
                   borderRadius: 2
                 }}
                 size="large"
-        </Paper>
+              >
+                APPLY FOR LEAVE
+              </Button>
         <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
           <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
         </Paper>
