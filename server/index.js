@@ -21,20 +21,25 @@ app.use(express.json());
 // MongoDB Connection
 console.log('Connecting to MongoDB Atlas...');
 
-// Use environment variables for connection string
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://jjoy2024:<db_password>@cluster0.spr2o17.mongodb.net/?retryWrites=true&w=majority&appName=jjoyHR';
+// Get MongoDB URI from package.json config or environment variable
+const pkg = require('./package.json');
+const MONGODB_URI = process.env.MONGODB_URI || pkg.config.mongodbUri;
 
-// Connect to MongoDB Atlas
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('Successfully connected to MongoDB Atlas');
-    console.log('Ready to serve employee data with salary and cityIsland fields');
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    console.error('Unable to connect to MongoDB Atlas. Please check your connection string and network settings.');
-    process.exit(1); // Exit the application if MongoDB connection fails
-  });
+// Connect to MongoDB Atlas with updated options
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000 // 5 second timeout
+})
+.then(() => {
+  console.log('Successfully connected to MongoDB Atlas');
+  console.log('Ready to serve employee data with salary and cityIsland fields');
+})
+.catch((err) => {
+  console.error('MongoDB connection error:', err);
+  // Don't exit the process, just log the error
+  console.error('Unable to connect to MongoDB Atlas. Please check your connection string and network settings.');
+});
 
 // Socket.io logic
 io.on('connection', (socket) => {
