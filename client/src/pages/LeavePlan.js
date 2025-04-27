@@ -535,101 +535,202 @@ const LeavePlan = () => {
                   borderRadius: 2
                 }}
                 size="large"
-              >
-                APPLY FOR LEAVE
-              </Button>
-            </Grid>
-          </Grid>
-          
-          {/* Leave balance display with improved visual presentation */}
-          {selectedEmployee && Object.keys(leaveBalances).length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold" color="primary.main">
-                  Leave Balance for {employees.find(emp => emp.id === selectedEmployee)?.name}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button 
-                    variant={currentView === 'calendar' ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setCurrentView('calendar')}
-                    startIcon={<CalendarMonth />}
-                  >
-                    Calendar
-                  </Button>
-                  <Button 
-                    variant={currentView === 'list' ? 'contained' : 'outlined'}
-                    size="small"
-                    onClick={() => setCurrentView('list')}
-                    startIcon={<CalendarMonth />}
-                  >
-                    List
-                  </Button>
-                </Box>
-              </Box>
-              
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                {leaveTypes.map(type => {
-                  const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, pending: 0, remaining: 0 };
-                  // Skip leave types with zero entitlement (not applicable to this employee)
-                  if (balance.entitlement === 0) return null;
-                  
-                  return (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={type.value}>
-                      <Paper 
-                        elevation={3} 
-                        sx={{ 
-                          p: 2, 
-                          textAlign: 'center',
-                          borderRadius: 2,
-                          border: '1px solid',
-                          borderColor: balance.remaining <= 0 ? 'error.main' : 
-                                      balance.remaining < 5 ? 'warning.main' : 'success.main',
-                          bgcolor: balance.remaining <= 0 ? 'rgba(211, 47, 47, 0.1)' : 
-                                  balance.remaining < 5 ? 'rgba(237, 108, 2, 0.1)' : 'rgba(46, 125, 50, 0.1)',
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
-                          {type.label}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', my: 1 }}>
-                          <Typography variant="h3" fontWeight="bold" color={balance.remaining <= 0 ? 'error.main' : 
-                                           balance.remaining < 5 ? 'warning.main' : 'success.main'}>
-                            {balance.remaining}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                            days<br/>remaining
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>{balance.used}</strong> used
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>{balance.entitlement}</strong> total
-                          </Typography>
-                        </Box>
-                        {balance.pending > 0 && (
-                          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
-                            <strong>{balance.pending}</strong> days pending approval
-                          </Typography>
-                        )}
-                      </Paper>
-                    </Grid>
-                  );
-                })}
-              </Grid>
-            </Box>
-          )}
         </Paper>
+        <Paper sx={{ px: 2, py: 1, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2 }}>
+          <Typography variant="body2"><strong>{stats.pending}</strong> Pending</Typography>
+        </Paper>
+        <Paper sx={{ px: 2, py: 1, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 2 }}>
+          <Typography variant="body2"><strong>{stats.approved}</strong> Approved</Typography>
+        </Paper>
+      </Box>
+    </Box>
+    
+    {/* Employee selection and leave balance - improved mobile responsiveness */}
+    <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 2, boxShadow: 3 }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <Typography variant="subtitle1" gutterBottom fontWeight="bold" color="primary.main">
+            Select Employee to View/Apply for Leave
+          </Typography>
+          <FormControl fullWidth size="large" variant="outlined">
+            <InputLabel>Employee Name</InputLabel>
+            <Select
+MenuProps={{
+  PaperProps: {
+    style: {
+      maxHeight: 250,
+      minWidth: 220,
+    },
+  },
+}}
+              value={selectedEmployee}
+              label="Employee Name"
+              sx={{ 
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderRadius: 2 }
+                }
+              }}
+              onChange={(e) => {
+                setSelectedEmployee(e.target.value);
+                if (e.target.value) {
+                  // Calculate and show leave balances for selected employee with improved calculation
+                  const employee = employees.find(emp => emp.id === e.target.value);
+                  if (employee) {
+                    // Calculate accurate balances for each leave type
+                    const balances = {};
+                    leaveTypes.forEach(type => {
+                      balances[type.value] = calculateLeaveBalance(employee, type.value, leaveRecords);
+                    });
+                    setLeaveBalances(balances);
+                  }
+                }
+              }}
+              displayEmpty
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 300
+                  },
+                },
+              }}
+              disabled={loading || employees.length === 0}
+              sx={{ minWidth: 300 }}
+            >
+              <MenuItem value="">
+                <em>Select an employee</em>
+              </MenuItem>
+              {employees.map(employee => (
+                <MenuItem key={employee.id} value={employee.id}>
+                  <strong>{employee.id}</strong> - {employee.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
         
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2, justifyContent: { xs: 'space-between', md: 'center' }, alignItems: { xs: 'center', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<CalendarMonth />}
+            onClick={() => handlePublicHolidayDialogOpen()}
+            sx={{ width: { xs: '48%', md: '220px' }, height: '45px', borderRadius: 2 }}
+            size="large"
+          >
+            PUBLIC HOLIDAYS
+          </Button>
+          
+          <Button 
+            variant="contained" 
+            color="primary"
+            startIcon={<Add />}
+            onClick={() => {
+              setFormData({
+                ...formData,
+                employeeId: selectedEmployee
+              });
+              setDialogOpen(true);
+            }}
+            disabled={!selectedEmployee}
+            sx={{ 
+              width: { xs: '48%', md: '220px' }, 
+              height: '45px', 
+              fontWeight: 'bold',
+              fontSize: { xs: '0.9rem', md: '1rem' },
+              borderRadius: 2
+            }}
+            size="large"
+          >
+            APPLY FOR LEAVE
+          </Button>
+        </Grid>
+      </Grid>
+      
+      {/* Always show leave balances for selected employee below selection area */}
+      <Box sx={{ mt: 3 }}>
+        {selectedEmployee && Object.keys(leaveBalances).length > 0 ? (
+          <>
+            <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ mb: 2 }}>
+              Leave Balances for {employees.find(emp => emp.id === selectedEmployee)?.name}
+            </Typography>
+            <Grid container spacing={2}>
+              {leaveTypes.map(type => {
+                const balance = leaveBalances[type.value] || { entitlement: 0, used: 0, pending: 0, remaining: 0 };
+                if (balance.entitlement === 0) return null;
+                return (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={type.value}>
+                    <Paper 
+                      elevation={3} 
+                      sx={{ 
+                        p: 2, 
+                        textAlign: 'center',
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: balance.remaining <= 0 ? 'error.main' : 
+                                    balance.remaining < 5 ? 'warning.main' : 'success.main',
+                        bgcolor: balance.remaining <= 0 ? 'rgba(211, 47, 47, 0.1)' : 
+                                balance.remaining < 5 ? 'rgba(237, 108, 2, 0.1)' : 'rgba(46, 125, 50, 0.1)',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.primary">
+                        {type.label}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', my: 1 }}>
+                        <Typography variant="h3" fontWeight="bold" color={balance.remaining <= 0 ? 'error.main' : 
+                                         balance.remaining < 5 ? 'warning.main' : 'success.main'}>
+                          {balance.remaining}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                          days<br/>remaining
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>{balance.used}</strong> used
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>{balance.entitlement}</strong> total
+                        </Typography>
+                      </Box>
+                      {balance.pending > 0 && (
+                        <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                          <strong>{balance.pending}</strong> days pending approval
+                        </Typography>
+                      )}
+                    </Paper>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Please select a team member to view leave balances.
+          </Typography>
         )}
+      </Box>
+    </Paper>
+    
+    {error && (
+      <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+    )}
+    
+    {/* Filters */}
+    <Paper sx={{ p: 2, mb: 3 }}>
+      <Grid container spacing={3} alignItems="center">
+        <Grid item xs={12} md={3}>
+          <FormControl fullWidth sx={{ minWidth: '220px' }}>
+            <InputLabel>Department</InputLabel>
+            <Select
+MenuProps={{
+  PaperProps: {
+    style: {
+      maxHeight: 250,
+      minWidth: 220,
         
         {/* Filters */}
         <Paper sx={{ p: 2, mb: 3 }}>
