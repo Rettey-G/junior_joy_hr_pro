@@ -58,27 +58,16 @@ app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/leaverequests', leaveRoutes);
 
-// Create a router for static files
-const staticRouter = express.Router();
-
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  const clientBuildPath = path.join(__dirname, '../client/build');
+  const clientPath = path.resolve(__dirname, '../client/build');
   
   // Serve static files
-  staticRouter.use(express.static(clientBuildPath));
+  app.use(express.static(clientPath));
   
-  // Serve index.html for any non-API routes
-  staticRouter.get('/', (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
-  
-  // Mount the static router after API routes
-  app.use('/', staticRouter);
-} else {
-  // Handle 404 routes in development
-  app.use((req, res) => {
-    res.status(404).json({ error: 'Route not found' });
+  // Simple catch-all handler
+  app.get('/', function(req, res) {
+    res.sendFile(path.join(clientPath, 'index.html'));
   });
 }
 
