@@ -20,8 +20,8 @@ app.use(express.json());
 // MongoDB Connection
 console.log('Connecting to MongoDB Atlas...');
 
-// Use the exact connection string provided by the user
-const MONGODB_URI = 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+// Use environment variables for connection string
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://jjoy2024:<db_password>@cluster0.spr2o17.mongodb.net/?retryWrites=true&w=majority&appName=jjoyHR';
 
 // Connect to MongoDB Atlas
 mongoose.connect(MONGODB_URI)
@@ -48,12 +48,14 @@ const authRoutes = require('./routes/auth');
 const employeeRoutes = require('./routes/employees');
 const userRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
+const leaveRoutes = require('./routes/leaves');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/leaverequests', leaveRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
