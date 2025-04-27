@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
-const LeaveSchema = new mongoose.Schema({
+const leaveSchema = new mongoose.Schema({
   employee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee',
     required: true
   },
   leaveType: {
-    type: String,
-    enum: ['annual', 'sick', 'emergency', 'family', 'unpaid'],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'LeaveType',
     required: true
   },
   startDate: {
@@ -29,48 +29,69 @@ const LeaveSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
     default: 'pending'
-  },
-  approvedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  approvalDate: {
-    type: Date
   },
   attachments: [{
     name: String,
     url: String,
     type: String
   }],
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  approvalDate: Date,
   comments: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    text: String,
+    comment: String,
     date: {
       type: Date,
       default: Date.now
     }
   }],
-  department: {
-    type: String
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
 });
 
 // Pre-save middleware to calculate days
-LeaveSchema.pre('save', function(next) {
+leaveSchema.pre('save', async function(next) {
   if (this.startDate && this.endDate) {
     const start = new Date(this.startDate);
     const end = new Date(this.endDate);
     const diffTime = Math.abs(end - start);
-    this.days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include both start and end days
+    this.days = diffDays;
   }
   next();
 });
 
-module.exports = mongoose.model('Leave', LeaveSchema);
+// Validation middleware to check leave balance
+leaveSchema.pre('save', async function(next) {
+  if (this.isNew || this.isModified('status')) {
+    const LeaveBalance = mongoose.model('LeaveBalance');
+    const currentYear = new Date().getFullYear();
+    
+    const balance = await LeaveBalance.findOne({
+      employee: this.employee,
+      leaveType: this.leaveType,
+      year: currentYear
+    });
+
+    if (!balance) {
+      throw new Error('No leave balance found for this leave type');
+    }
+
+    if (this.status === 'approved' && this.days > balance.remainingDays) {
+      throw new Error('Insufficient leave balance');
+    }
+  }
+  next();
+});
+
+module.exports = mongoose.model('Leave', leaveSchema);
