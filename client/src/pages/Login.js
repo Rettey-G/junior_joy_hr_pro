@@ -39,18 +39,10 @@ const Login = () => {
       console.log('Login attempt with:', { username: formData.username });
       console.log('API URL:', process.env.REACT_APP_API_URL || 'default');
       
-      // Always try demo login first in Netlify environment
+      // Always use real login endpoint
       let response;
-      try {
-        console.log('Attempting demo login...');
-        response = await api.post('/api/auth/demo-login', formData);
-        console.log('Demo login successful:', response.data);
-      } catch (demoErr) {
-        console.log('Demo login failed, trying regular login...', demoErr.message);
-        response = await api.post('/api/auth/login', formData);
-        console.log('Regular login successful:', response.data);
-      }
-      
+      response = await api.post('/api/auth/login', formData);
+      console.log('Login successful:', response.data);
       if (!response.data.token) {
         throw new Error('No token received from server');
       }
