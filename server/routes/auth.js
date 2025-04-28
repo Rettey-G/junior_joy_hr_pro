@@ -63,9 +63,11 @@ router.post('/demo-login', (req, res) => {
   
   // Demo users with hardcoded passwords
   const demoUsers = [
-    { id: '1', username: 'user', password: 'password', role: 'admin' },
-    { id: '2', username: 'hr', password: 'password', role: 'hr' },
-    { id: '3', username: 'employee', password: 'password', role: 'employee' }
+    { id: '1', username: 'admin', password: 'Admin@123', role: 'admin' },
+    { id: '2', username: 'hr', password: 'Hr@123', role: 'hr' },
+    { id: '3', username: 'employee', password: 'Employee@123', role: 'employee' },
+    // Keep the old demo credentials as fallback
+    { id: '4', username: 'user', password: 'password', role: 'admin' }
   ];
   
   // Find user by username

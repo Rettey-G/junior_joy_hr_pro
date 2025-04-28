@@ -8,9 +8,18 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS configuration for production and development
+const allowedOrigins = [
+  'https://juniorjoy-hr-pro.netlify.app',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL // Add your production frontend URL here
+];
+
+// Socket.io configuration
 const io = new Server(server, {
   cors: {
-    origin: ['https://juniorjoy-hr-pro.netlify.app', 'http://localhost:3000'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -19,7 +28,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: ['https://juniorjoy-hr-pro.netlify.app', 'http://localhost:3000'],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -48,11 +57,10 @@ const connectWithRetry = () => {
   .catch((err) => {
     console.error('MongoDB connection error:', err);
     console.error('Retrying connection in 5 seconds...');
-    setTimeout(connectWithRetry, 5000); // Retry after 5 seconds
+    setTimeout(connectWithRetry, 5000);
   });
 };
 
-// Initial connection attempt
 connectWithRetry();
 
 // Handle MongoDB connection events
@@ -98,11 +106,8 @@ app.use('/api/trainings', trainingRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files
   app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  // Handle React routing, return all requests to React app
-  app.get('*', function(req, res) {
+  app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
@@ -113,6 +118,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// Kill any existing process on port 5000 before starting (Windows only)
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -57,8 +57,8 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userRole', response.data.user.role);
       
-      // Redirect to dashboard
-      navigate('/');
+      // Force a page reload to ensure proper state update
+      window.location.href = '/';
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
       console.error('Login error:', err);

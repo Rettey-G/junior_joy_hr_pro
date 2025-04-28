@@ -108,11 +108,20 @@ const ResponsiveContainer = ({ children }) => {
 function App() {
   // Simple auth check (replace with real auth logic later)
   const isAuthenticated = () => {
-    return localStorage.getItem('token') !== null;
+    const token = localStorage.getItem('token');
+    console.log('Auth check - Token:', token);
+    return token !== null;
   };
 
   const isAdmin = () => {
-    return localStorage.getItem('userRole') === 'admin';
+    const role = localStorage.getItem('userRole');
+    console.log('Role check:', role);
+    return role === 'admin';
+  };
+
+  const isHR = () => {
+    const role = localStorage.getItem('userRole');
+    return role === 'hr';
   };
 
   return (
@@ -126,7 +135,9 @@ function App() {
               <Route path="/login" element={!isAuthenticated() ? <Login /> : <Navigate to="/" />} />
               <Route path="/" element={
                 isAuthenticated() ? 
-                  (isAdmin() ? <Dashboard /> : <UserDashboard />) : 
+                  (isAdmin() ? <Dashboard /> : 
+                   isHR() ? <UserDashboard /> : 
+                   <UserDashboard />) : 
                   <Navigate to="/login" />
               } />
               <Route path="/employees" element={isAuthenticated() && isAdmin() ? <Employees /> : <Navigate to="/" />} />
