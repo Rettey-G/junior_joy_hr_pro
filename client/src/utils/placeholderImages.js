@@ -1,16 +1,13 @@
 // Placeholder base64 images for employee profiles
 // Simple silhouettes for male and female employees when no image is uploaded
 
-export const maleProfileImage = '/juniorjoyhr.jpg';
-export const femaleProfileImage = '/juniorjoyhr.jpg';
-
-// Function to get profile image based on gender
-export const getProfileImageByGender = (gender) => {
-  return gender === 'Female' ? femaleProfileImage : maleProfileImage;
+const placeholderImages = {
+  employee: '/placeholders/employee.png',
+  user: '/placeholders/user.png',
+  training: '/placeholders/training.png',
+  department: '/placeholders/department.png',
+  company: '/placeholders/company.png',
+  logo: '/juniorjoyhr.jpg'
 };
 
-export default {
-  maleProfileImage,
-  femaleProfileImage,
-  getProfileImageByGender,
-};
+export default placeholderImages;
