@@ -54,9 +54,12 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Load default config values from package.json
+const pkgConfig = require('./package.json').config;
+
 // MongoDB Connection
 console.log('Connecting to MongoDB Atlas...');
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/test';
+const MONGODB_URI = process.env.MONGODB_URI || pkgConfig.mongodbUri;
 
 // Connect to MongoDB Atlas with retry logic
 const connectWithRetry = () => {
