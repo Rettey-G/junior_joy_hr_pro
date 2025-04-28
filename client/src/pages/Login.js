@@ -39,18 +39,14 @@ const Login = () => {
     setError('');
     
     try {
-      // First try regular login with User model
+      // Always try demo login first in production
       let response;
       try {
-        response = await api.post('/api/auth/login', formData);
+        console.log('Attempting demo login...');
+        response = await api.post('/api/auth/demo-login', formData);
       } catch (err) {
-        // If regular login fails, try demo login as fallback
-        if (err.response?.status === 401 || err.response?.status === 500) {
-          console.log('Trying demo login as fallback');
-          response = await api.post('/api/auth/demo-login', formData);
-        } else {
-          throw err;
-        }
+        console.log('Demo login failed, trying regular login...');
+        response = await api.post('/api/auth/login', formData);
       }
       
       // Store the token and user role in localStorage
@@ -60,8 +56,8 @@ const Login = () => {
       // Force a page reload to ensure proper state update
       window.location.href = '/';
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
       console.error('Login error:', err);
+      setError('Invalid username or password. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Get the API URL from environment or use a default
+const API_URL = process.env.REACT_APP_API_URL || 
+  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://junior-joy-hr-pro.onrender.com');
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  baseURL: API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -15,7 +19,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Log the request URL in development
+    // Log the request in development
     if (process.env.NODE_ENV === 'development') {
       console.log('API Request:', config.url);
     }
@@ -30,7 +34,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Log the error in development
+    // Log errors in development
     if (process.env.NODE_ENV === 'development') {
       console.error('API Error:', error);
     }
