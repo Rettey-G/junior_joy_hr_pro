@@ -36,8 +36,10 @@ const MONGODB_URI = process.env.MONGODB_URI || pkg.config.mongodbUri;
 // Connect to MongoDB Atlas with retry logic
 const connectWithRetry = () => {
   mongoose.connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000, // Increase timeout to 10 seconds
-    heartbeatFrequencyMS: 2000 // Check connection every 2 seconds
+    serverSelectionTimeoutMS: 10000,
+    heartbeatFrequencyMS: 2000,
+    socketTimeoutMS: 45000,
+    family: 4
   })
   .then(() => {
     console.log('Successfully connected to MongoDB Atlas');
