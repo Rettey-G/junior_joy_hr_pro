@@ -41,9 +41,17 @@ const EmployeeAnalyticsSchema = new mongoose.Schema({
     female: Number,
     other: Number
   },
+  nationalityDistribution: {
+    type: Map,
+    of: Number
+  },
   
   // Department metrics
   departmentDistribution: {
+    type: Map,
+    of: Number
+  },
+  worksiteDistribution: {
     type: Map,
     of: Number
   },

@@ -103,6 +103,24 @@ const generatePeriodAnalytics = async (employees, trainings, leaves, period) => 
     }
   });
   
+  // Calculate nationality distribution
+  const nationalityDistribution = new Map();
+  employees.forEach(emp => {
+    if (emp.nationality) {
+      const nat = emp.nationality;
+      nationalityDistribution.set(nat, (nationalityDistribution.get(nat) || 0) + 1);
+    }
+  });
+  
+  // Calculate worksite distribution
+  const worksiteDistribution = new Map();
+  employees.forEach(emp => {
+    if (emp.workSite) {
+      const site = emp.workSite;
+      worksiteDistribution.set(site, (worksiteDistribution.get(site) || 0) + 1);
+    }
+  });
+  
   // Calculate tenure metrics
   const now = new Date();
   const tenures = employees.map(emp => {
@@ -136,6 +154,8 @@ const generatePeriodAnalytics = async (employees, trainings, leaves, period) => 
     turnoverRate: 0, // Would require historical data
     genderDistribution,
     departmentDistribution: Object.fromEntries(departmentDistribution),
+    nationalityDistribution: Object.fromEntries(nationalityDistribution),
+    worksiteDistribution: Object.fromEntries(worksiteDistribution),
     salaryMetrics: {
       average: averageSalary,
       median: medianSalary,
