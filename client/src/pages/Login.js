@@ -36,25 +36,37 @@ const Login = () => {
     setError('');
     
     try {
-      // Always try demo login first in production
+      console.log('Login attempt with:', { username: formData.username });
+      console.log('API URL:', process.env.REACT_APP_API_URL || 'default');
+      
+      // Always try demo login first in Netlify environment
       let response;
       try {
         console.log('Attempting demo login...');
         response = await api.post('/api/auth/demo-login', formData);
-      } catch (err) {
-        console.log('Demo login failed, trying regular login...');
+        console.log('Demo login successful:', response.data);
+      } catch (demoErr) {
+        console.log('Demo login failed, trying regular login...', demoErr.message);
         response = await api.post('/api/auth/login', formData);
+        console.log('Regular login successful:', response.data);
       }
       
-      // Store the token and user role in localStorage
+      if (!response.data.token) {
+        throw new Error('No token received from server');
+      }
+      
+      // Store the token, user role, and user ID in localStorage
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userRole', response.data.user.role);
+      localStorage.setItem('userId', response.data.user.id);
+      
+      console.log('Authentication successful, redirecting to dashboard...');
       
       // Force a page reload to ensure proper state update
       window.location.href = '/';
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Invalid username or password. Please try again.');
+      console.error('Login error details:', err.message, err.response?.data);
+      setError('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }

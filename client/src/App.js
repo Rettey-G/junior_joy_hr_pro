@@ -105,10 +105,41 @@ const ResponsiveContainer = ({ children }) => {
 };
 
 function App() {
-  // Simple auth check (replace with real auth logic later)
+  // Auth check with token verification
   const isAuthenticated = () => {
     const token = localStorage.getItem('token');
-    return token !== null;
+    const userRole = localStorage.getItem('userRole');
+    
+    if (token && userRole) {
+      try {
+        // Check if token is expired by decoding it
+        // JWT tokens have 3 parts separated by dots
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+          console.error('Invalid token format');
+          return false;
+        }
+        
+        // Get the payload part (second part) and decode it
+        const payload = JSON.parse(atob(tokenParts[1]));
+        
+        // Check if token is expired
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now) {
+          console.error('Token expired, logging out');
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('userId');
+          return false;
+        }
+        
+        return true;
+      } catch (err) {
+        console.error('Error checking authentication:', err);
+        return false;
+      }
+    }
+    return false;
   };
 
   const isAdmin = () => {
