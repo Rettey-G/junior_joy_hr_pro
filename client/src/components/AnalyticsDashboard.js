@@ -53,6 +53,7 @@ const AnalyticsDashboard = () => {
         try {
           const response = await api.get('/api/analytics/latest');
           setAnalyticsData(response.data);
+          console.log('Analytics Data from API:', response.data);
           setLoading(false);
         } catch (apiError) {
           console.error('Error fetching analytics from API:', apiError);
