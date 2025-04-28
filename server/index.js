@@ -96,14 +96,12 @@ app.use('/api/trainings', trainingRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.resolve(__dirname, '../client/build');
-  
   // Serve static files
-  app.use(express.static(clientPath));
+  app.use(express.static(path.join(__dirname, '../client/build')));
   
-  // Simple catch-all handler
-  app.get('/', function(req, res) {
-    res.sendFile(path.join(clientPath, 'index.html'));
+  // Handle React routing, return all requests to React app
+  app.get('*', function(req, res) {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
   });
 }
 
