@@ -59,7 +59,12 @@ const pkgConfig = require('./package.json').config;
 
 // MongoDB Connection
 console.log('Connecting to MongoDB Atlas...');
-const MONGODB_URI = process.env.MONGODB_URI || pkgConfig.mongodbUri;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI environment variable is not set');
+  process.exit(1);
+}
 
 // Connect to MongoDB Atlas with retry logic
 const connectWithRetry = () => {
@@ -67,7 +72,11 @@ const connectWithRetry = () => {
     serverSelectionTimeoutMS: 10000,
     heartbeatFrequencyMS: 2000,
     socketTimeoutMS: 45000,
-    family: 4
+    family: 4,
+    maxPoolSize: 10,
+    minPoolSize: 5,
+    retryWrites: true,
+    w: 'majority'
   })
   .then(() => {
     console.log('Successfully connected to MongoDB Atlas');
@@ -78,8 +87,6 @@ const connectWithRetry = () => {
     setTimeout(connectWithRetry, 5000);
   });
 };
-
-connectWithRetry();
 
 // Handle MongoDB connection events
 mongoose.connection.on('connected', () => {
@@ -95,6 +102,20 @@ mongoose.connection.on('disconnected', () => {
   console.log('Attempting to reconnect...');
   setTimeout(connectWithRetry, 5000);
 });
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed through app termination');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during MongoDB connection closure:', err);
+    process.exit(1);
+  }
+});
+
+connectWithRetry();
 
 // Socket.io logic
 io.on('connection', (socket) => {

@@ -87,3 +87,9 @@ A comprehensive HR Management System built with the MERN stack (MongoDB, Express
 ## License
 
 MIT License
+
+
+
+Username: admin
+Password: Admin@123
+Role: admin
