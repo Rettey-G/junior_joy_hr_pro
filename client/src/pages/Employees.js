@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import allEmployeeData from '../data/allEmployeeData';
 import { CSVLink } from 'react-csv';
 import { getProfileImageByGender } from '../utils/placeholderImages';
+import api from '../services/api';
 
 import {
   Container,
@@ -101,32 +101,12 @@ const Employees = () => {
   const user = userString ? JSON.parse(userString) : null;
   const isAdmin = user && user.role === 'admin';
 
-  // Fetch employees - now using our comprehensive employee data
+  // Fetch employees from backend
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      // Instead of API fetch, use our local employee data
-      // Filter the employee data based on the filters
-      let filteredData = [...allEmployeeData];
-      
-      if (filters.department) {
-        filteredData = filteredData.filter(emp => emp.department === filters.department);
-      }
-      
-      if (filters.workSite) {
-        filteredData = filteredData.filter(emp => emp.workSite === filters.workSite);
-      }
-      
-      if (filters.nationality) {
-        filteredData = filteredData.filter(emp => emp.nationality === filters.nationality);
-      }
-      
-      if (filters.designation) {
-        filteredData = filteredData.filter(emp => emp.designation === filters.designation);
-      }
-      
-      // Set the employee data
-      setEmployees(filteredData);
+      const response = await api.get('/api/employees');
+      setEmployees(response.data);
       showSnackbar('Employee data updated successfully', 'success');
     } catch (err) {
       setError('Error loading employee data');
@@ -136,11 +116,9 @@ const Employees = () => {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchEmployees();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, []);
 
   // Handle dialog open/close
   const handleOpenDialog = (employee = null) => {
@@ -325,59 +303,36 @@ const Employees = () => {
     }
   };
 
-  // Save employee (create or update) - now working with local data
+  // Add or update employee
   const handleSaveEmployee = async () => {
     try {
       const isEditing = !!currentEmployee;
-      
       if (isEditing) {
         // Update existing employee
-        const updatedEmployees = employees.map(emp => {
-          if (emp.empNo === currentEmployee.empNo) {
-            return { 
-              ...formData,
-              // Keep the image if not changed
-              image: imagePreview || formData.image || currentEmployee.image
-            };
-          }
-          return emp;
-        });
-        setEmployees(updatedEmployees);
+        const response = await api.put(`/api/employees/${currentEmployee._id}`, formData);
+        setEmployees(employees.map(emp => emp._id === currentEmployee._id ? response.data : emp));
         showSnackbar('Employee updated successfully', 'success');
       } else {
-        // Add mode - create new employee with ID
-        const newEmployee = {
-          ...formData,
-          id: `EMP-${Math.floor(Math.random() * 1000)}`,
-          // Include the image in the new employee record
-          image: imagePreview || formData.image
-        };
-        setEmployees([...employees, newEmployee]);
+        // Add new employee
+        const response = await api.post('/api/employees', formData);
+        setEmployees([...employees, response.data]);
         showSnackbar('Employee added successfully', 'success');
       }
-      
       handleCloseDialog();
     } catch (err) {
-      showSnackbar(`Error: ${err.message}`, 'error');
+      showSnackbar(`Error: ${err.response?.data?.error || err.message}`, 'error');
     }
   };
 
-  // Delete employee - now working with local data
-  const handleDeleteEmployee = async (empNo) => {
-    if (!window.confirm('Are you sure you want to delete this employee?')) {
-      return;
-    }
-    
+  // Delete employee
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
     try {
-      // Remove from the local list only
-      setEmployees(employees.filter(emp => emp.empNo !== empNo));
+      await api.delete(`/api/employees/${id}`);
+      setEmployees(employees.filter(emp => emp._id !== id));
       showSnackbar('Employee deleted successfully', 'success');
-      
-      // In a real app, here you would make the API call to delete from the backend
-      // For now we're just working with local data
-      
     } catch (err) {
-      showSnackbar('Error deleting employee: ' + (err.message || 'Unknown error'), 'error');
+      showSnackbar('Error deleting employee: ' + (err.response?.data?.error || err.message), 'error');
     }
   };
 
@@ -883,7 +838,7 @@ const Employees = () => {
                               <IconButton 
                                 size="small" 
                                 color="error"
-                                onClick={() => handleDeleteEmployee(employee.empNo)}
+                                onClick={() => handleDeleteEmployee(employee._id)}
                               >
                                 <Delete fontSize="small" />
                               </IconButton>
