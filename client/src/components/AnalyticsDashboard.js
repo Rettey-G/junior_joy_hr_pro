@@ -234,17 +234,20 @@ const AnalyticsDashboard = () => {
     }
   };
   
+  // Master lists for all possible values
+  const ALL_WORKSITES = [
+    'Office', 'Express 1', 'Express 3', 'Express 5', 'Express 6', 'Express 7', 'Express 10', 'Bowser', 'Thilafushi'
+  ];
+  const ALL_GENDERS = ['Male', 'Female', 'Other'];
+  const ALL_NATIONALITIES = ['Maldivian', 'Bangladeshi', 'Indian', 'Sri Lankan'];
+  
   // Prepare gender distribution data for chart
   const genderData = {
-    labels: ['Male', 'Female', 'Other'],
+    labels: ALL_GENDERS,
     datasets: [
       {
         label: 'Gender Distribution',
-        data: [
-          analyticsData.genderDistribution?.male || 0,
-          analyticsData.genderDistribution?.female || 0,
-          analyticsData.genderDistribution?.other || 0
-        ],
+        data: ALL_GENDERS.map(g => analyticsData.genderDistribution?.[g.toLowerCase()] || 0),
         backgroundColor: chartColors.slice(0, 3),
         borderColor: chartBorderColors.slice(0, 3),
         borderWidth: 1,
@@ -267,8 +270,8 @@ const AnalyticsDashboard = () => {
   };
   
   // Prepare nationality distribution if available
-  const nationalityLabels = Object.keys(analyticsData.nationalityDistribution || {});
-  const nationalityValues = Object.values(analyticsData.nationalityDistribution || {});
+  const nationalityLabels = ALL_NATIONALITIES;
+  const nationalityValues = ALL_NATIONALITIES.map(n => analyticsData.nationalityDistribution?.[n] || 0);
   
   const nationalityData = {
     labels: nationalityLabels,
@@ -283,37 +286,16 @@ const AnalyticsDashboard = () => {
     ]
   };
   
-  // Prepare worksite distribution data from employee data
-  const worksiteMap = new Map();
-  try {
-    // Extract worksite data from employees
-    if (employeeData && employeeData.length) {
-      employeeData.forEach(emp => {
-        if (emp.workSite) {
-          const site = emp.workSite;
-          worksiteMap.set(site, (worksiteMap.get(site) || 0) + 1);
-        }
-      });
-    }
-  } catch (err) {
-    console.error('Error processing worksite data:', err);
-  }
+  // Prepare worksite distribution data
+  const worksiteLabels = ALL_WORKSITES;
+  const worksiteValues = ALL_WORKSITES.map(w => analyticsData.worksiteDistribution?.[w] || 0);
   
-  // If worksite map is empty, add some default data
-  if (worksiteMap.size === 0) {
-    worksiteMap.set('Office', 25);
-    worksiteMap.set('Field', 10);
-    worksiteMap.set('Remote', 5);
-    worksiteMap.set('Station', 5);
-  }
-  
-  const worksiteDistribution = Object.fromEntries(worksiteMap);
   const worksiteData = {
-    labels: Object.keys(worksiteDistribution),
+    labels: worksiteLabels,
     datasets: [
       {
         label: 'Worksite Distribution',
-        data: Object.values(worksiteDistribution),
+        data: worksiteValues,
         backgroundColor: chartColors,
         borderColor: chartBorderColors,
         borderWidth: 1,
@@ -517,10 +499,10 @@ const AnalyticsDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(analyticsData.nationalityDistribution || {}).map(([nationality, count]) => (
+                      {ALL_NATIONALITIES.map(nationality => (
                         <tr key={nationality}>
                           <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{nationality}</td>
-                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{count}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.nationalityDistribution?.[nationality] || 0}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -577,18 +559,12 @@ const AnalyticsDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Male</td>
-                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.male || 0}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Female</td>
-                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.female || 0}</td>
-                      </tr>
-                      <tr>
-                        <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Other</td>
-                        <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.other || 0}</td>
-                      </tr>
+                      {ALL_GENDERS.map(gender => (
+                        <tr key={gender}>
+                          <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{gender}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.genderDistribution?.[gender.toLowerCase()] || 0}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </Box>
@@ -641,10 +617,10 @@ const AnalyticsDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(worksiteDistribution || {}).map(([site, count]) => (
+                      {ALL_WORKSITES.map(site => (
                         <tr key={site}>
                           <td style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #eee' }}>{site}</td>
-                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{count}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>{analyticsData.worksiteDistribution?.[site] || 0}</td>
                         </tr>
                       ))}
                     </tbody>
