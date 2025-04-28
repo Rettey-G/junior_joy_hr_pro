@@ -3,34 +3,24 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Login endpoint
+// Login endpoint (username only)
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    
-    // Find user by username
     const user = await User.findOne({ username });
-    
-    // Check if user exists
     if (!user) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
-    
-    // Check if password matches
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
-    
-    // Update last login time
     user.lastLogin = new Date();
     await user.save();
-    
-    // Create and sign JWT token
     const token = jwt.sign(
-      { 
-        _id: user._id, 
-        username: user.username, 
+      {
+        _id: user._id,
+        username: user.username,
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName
@@ -38,8 +28,6 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET || 'yourjwtsecretkey',
       { expiresIn: '24h' }
     );
-    
-    // Send token and user info (without password)
     res.json({
       token,
       user: {
