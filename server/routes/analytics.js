@@ -183,4 +183,7 @@ router.post('/generate', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = {
+  router,
+  generateAnalytics
+};

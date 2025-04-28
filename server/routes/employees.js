@@ -3,6 +3,7 @@ const router = express.Router();
 const Employee = require('../models/Employee');
 const auth = require('../middleware/auth');
 const hr = require('../middleware/hr');
+const { generateAnalytics } = require('./analytics');
 
 // GET all employees with filtering
 router.get('/', auth, async (req, res) => {
@@ -48,6 +49,7 @@ router.post('/', [auth, hr], async (req, res) => {
     
     const employee = new Employee(req.body);
     await employee.save();
+    await generateAnalytics();
     res.status(201).json(employee);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -67,6 +69,7 @@ router.put('/:id', [auth, hr], async (req, res) => {
     
     const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!employee) return res.status(404).json({ error: 'Employee not found' });
+    await generateAnalytics();
     res.json(employee);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -78,6 +81,7 @@ router.delete('/:id', [auth, hr], async (req, res) => {
   try {
     const employee = await Employee.findByIdAndDelete(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Employee not found' });
+    await generateAnalytics();
     res.json({ message: 'Employee deleted successfully', employee });
   } catch (err) {
     res.status(500).json({ error: err.message });

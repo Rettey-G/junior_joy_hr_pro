@@ -93,3 +93,6 @@ MIT License
 Username: admin
 Password: Admin@123
 Role: admin
+
+Username: admin2
+Password: Admin2@123
