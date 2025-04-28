@@ -10,7 +10,7 @@
     "init-db": "node scripts/init-db.js"
   },
   "config": {
-    "mongodbUri": "mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/jjoyHR?retryWrites=true&w=majority&appName=Cluster0",
+    "mongodbUri": "mongodb://Rettey:Adhu1447@cluster0-shard-00-00.spr2o17.mongodb.net:27017,cluster0-shard-00-01.spr2o17.mongodb.net:27017,cluster0-shard-00-02.spr2o17.mongodb.net:27017/jjoyHR?ssl=true&replicaSet=atlas-spr2o17-shard-0&authSource=admin&retryWrites=true&w=majority",
     "jwtSecret": "yourjwtsecretkey"
   },
   "keywords": [],
