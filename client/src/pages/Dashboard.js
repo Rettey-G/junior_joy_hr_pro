@@ -45,6 +45,15 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+// Create axios instance
+const api = axios.create({
+  baseURL: apiUrl,
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+  }
+});
+
 const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
