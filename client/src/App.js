@@ -109,37 +109,52 @@ function App() {
   const isAuthenticated = () => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
-    
-    if (token && userRole) {
-      try {
-        // Check if token is expired by decoding it
-        // JWT tokens have 3 parts separated by dots
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-          console.error('Invalid token format');
-          return false;
-        }
-        
-        // Get the payload part (second part) and decode it
-        const payload = JSON.parse(atob(tokenParts[1]));
-        
-        // Check if token is expired
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
-          console.error('Token expired, logging out');
-          localStorage.removeItem('token');
-          localStorage.removeItem('userRole');
-          localStorage.removeItem('userId');
-          return false;
-        }
-        
-        return true;
-      } catch (err) {
-        console.error('Error checking authentication:', err);
+    if (!token || !userRole) return false;
+
+    // Check token expiration on client
+    try {
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        console.error('Invalid token format');
         return false;
       }
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        console.error('Token expired, logging out');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
+        return false;
+      }
+    } catch (err) {
+      console.error('Error decoding token:', err);
+      return false;
     }
-    return false;
+
+    // Verify token with backend synchronously (not recommended for every render, but best effort for login bug)
+    // This should be replaced with a React context and useEffect in a real app
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', (process.env.REACT_APP_API_URL || 'http://localhost:5000') + '/api/auth/verify', false);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+    try {
+      xhr.send();
+      if (xhr.status === 200) {
+        const resp = JSON.parse(xhr.responseText);
+        if (resp.valid) {
+          return true;
+        } else {
+          console.error('Token verification failed:', resp);
+          return false;
+        }
+      } else {
+        console.error('Token verification HTTP error:', xhr.status, xhr.responseText);
+        return false;
+      }
+    } catch (e) {
+      console.error('Token verification request failed:', e);
+      return false;
+    }
   };
 
   const isAdmin = () => {

@@ -59,11 +59,23 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userRole', response.data.user.role);
       localStorage.setItem('userId', response.data.user.id);
-      
-      console.log('Authentication successful, redirecting to dashboard...');
-      
-      // Force a page reload to ensure proper state update
-      window.location.href = '/';
+
+      // Verify token with backend before redirecting
+      try {
+        const verifyResp = await api.get('/api/auth/verify', {
+          headers: { Authorization: `Bearer ${response.data.token}` }
+        });
+        if (verifyResp.data && verifyResp.data.valid) {
+          console.log('Token verified with backend, redirecting...');
+          window.location.href = '/';
+        } else {
+          console.error('Token verification failed:', verifyResp.data);
+          setError('Login failed: Invalid token.');
+        }
+      } catch (verifyErr) {
+        console.error('Token verification error:', verifyErr);
+        setError('Login failed: Could not verify session.');
+      }
     } catch (err) {
       console.error('Login error details:', err.message, err.response?.data);
       setError('Login failed. Please check your credentials and try again.');
