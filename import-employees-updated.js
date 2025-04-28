@@ -60,7 +60,7 @@ async function importEmployees() {
     await client.connect();
     console.log('Connected to MongoDB');
     
-    const db = client.db();
+    const db = client.db('jjoyHR');
     
     // Extract employee data from files
     const employeeData = await extractEmployeeData();
@@ -79,6 +79,7 @@ async function importEmployees() {
     // Transform the data to match MongoDB schema
     const processedEmployees = employeeData.map(emp => ({
       id: uuidv4(), // Generate a unique ID for each employee
+      employeeId: emp.empNo, // Ensure employeeId is unique and set from empNo
       empNo: emp.empNo,
       name: emp.name,
       idNumber: emp.idNumber || emp.id || '',

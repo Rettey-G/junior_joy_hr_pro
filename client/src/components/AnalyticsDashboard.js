@@ -206,11 +206,33 @@ const AnalyticsDashboard = () => {
 
   // Chart colors
   const chartColors = [
-    '#2196f3', '#4caf50', '#f44336', '#9c27b0', 
-    '#ff9800', '#009688', '#673ab7', '#795548'
+    '#1976d2', '#43a047', '#e53935', '#8e24aa', '#fbc02d', '#00838f', '#6d4c41', '#c62828', '#3949ab', '#00acc1', '#f4511e', '#7cb342', '#fb8c00', '#5e35b1', '#039be5', '#d81b60'
   ];
   
   const chartBorderColors = chartColors.map(color => color);
+  
+  // Chart.js plugin for value labels
+  const valueLabelsPlugin = {
+    id: 'valueLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data } = chart;
+      ctx.save();
+      data.datasets.forEach((dataset, i) => {
+        chart.getDatasetMeta(i).data.forEach((datapoint, idx) => {
+          const value = dataset.data[idx];
+          if (value > 0) {
+            const { x, y } = datapoint.tooltipPosition();
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value, x, y);
+          }
+        });
+      });
+      ctx.restore();
+    }
+  };
   
   // Prepare gender distribution data for chart
   const genderData = {
@@ -409,12 +431,21 @@ const AnalyticsDashboard = () => {
                       plugins: {
                         legend: {
                           position: 'bottom',
-                          labels: {
-                            font: { size: 10 }
+                          labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                          enabled: true,
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = context.parsed || 0;
+                              return `${label}: ${value}`;
+                            }
                           }
                         }
                       }
                     }}
+                    plugins={[valueLabelsPlugin]}
                   />
                 </Box>
               </Grid>
@@ -458,12 +489,21 @@ const AnalyticsDashboard = () => {
                       plugins: {
                         legend: {
                           position: 'bottom',
-                          labels: {
-                            font: { size: 10 }
+                          labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                          enabled: true,
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = context.parsed || 0;
+                              return `${label}: ${value}`;
+                            }
                           }
                         }
                       }
                     }}
+                    plugins={[valueLabelsPlugin]}
                   />
                 </Box>
               </Grid>
@@ -509,12 +549,21 @@ const AnalyticsDashboard = () => {
                       plugins: {
                         legend: {
                           position: 'bottom',
-                          labels: {
-                            font: { size: 10 }
+                          labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                          enabled: true,
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = context.parsed || 0;
+                              return `${label}: ${value}`;
+                            }
                           }
                         }
                       }
                     }}
+                    plugins={[valueLabelsPlugin]}
                   />
                 </Box>
               </Grid>
@@ -564,12 +613,21 @@ const AnalyticsDashboard = () => {
                       plugins: {
                         legend: {
                           position: 'bottom',
-                          labels: {
-                            font: { size: 10 }
+                          labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                          enabled: true,
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = context.parsed || 0;
+                              return `${label}: ${value}`;
+                            }
                           }
                         }
                       }
                     }}
+                    plugins={[valueLabelsPlugin]}
                   />
                 </Box>
               </Grid>

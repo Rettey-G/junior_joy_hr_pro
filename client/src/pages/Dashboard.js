@@ -555,6 +555,62 @@ const Dashboard = () => {
           </Box>
         </Paper>
 
+        {/* Summary Cards Section */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={3} sx={{ p: 2, borderRadius: 2, boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <PeopleOutline color="primary" fontSize="large" />
+                  <Box>
+                    <Typography variant="h6" color="textSecondary">Total Employees</Typography>
+                    <Typography variant="h4" fontWeight="bold">{stats.totalEmployees}</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={3} sx={{ p: 2, borderRadius: 2, boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <TrendingUp color="success" fontSize="large" />
+                  <Box>
+                    <Typography variant="h6" color="textSecondary">New Hires (30d)</Typography>
+                    <Typography variant="h4" fontWeight="bold">{stats.newHires}</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={3} sx={{ p: 2, borderRadius: 2, boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Business color="primary" fontSize="large" />
+                  <Box>
+                    <Typography variant="h6" color="textSecondary">Departments</Typography>
+                    <Typography variant="h4" fontWeight="bold">{stats.departments}</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card elevation={3} sx={{ p: 2, borderRadius: 2, boxShadow: 3 }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <AttachMoney color="success" fontSize="large" />
+                  <Box>
+                    <Typography variant="h6" color="textSecondary">Avg. Salary (USD)</Typography>
+                    <Typography variant="h4" fontWeight="bold">${stats.averageSalary.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
         {/* Analytics Dashboard Component */}
         <AnalyticsDashboard />
         
