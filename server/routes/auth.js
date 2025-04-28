@@ -80,7 +80,7 @@ router.post('/demo-login', (req, res) => {
   
   // Create and sign JWT token
   const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
+    { _id: user.id, username: user.username, role: user.role },
     process.env.JWT_SECRET || 'yourjwtsecretkey',
     { expiresIn: '1d' }
   );
@@ -103,7 +103,11 @@ router.get('/verify', async (req, res) => {
     if (!token) return res.status(401).json({ message: 'No token provided' });
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'yourjwtsecretkey');
-    const user = await User.findById(decoded._id).select('-password');
+    const userId = decoded._id || decoded.id || decoded.userId;
+    if (!userId) {
+      return res.status(401).json({ valid: false, message: 'Invalid token payload' });
+    }
+    const user = await User.findById(userId).select('-password');
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

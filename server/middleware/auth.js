@@ -21,8 +21,16 @@ const auth = async (req, res, next) => {
                 process.env.JWT_SECRET || config.config.jwtSecret || 'yourjwtsecretkey'
             );
             
-            // Find user
-            const user = await User.findById(decoded.userId);
+            // Determine userId from token payload
+            const userId = decoded._id || decoded.id || decoded.userId;
+            if (!userId) {
+                return res.status(401).json({
+                    message: 'Authentication failed',
+                    error: 'Invalid token payload'
+                });
+            }
+            // Find user by ID
+            const user = await User.findById(userId);
             
             if (!user) {
                 return res.status(401).json({ 
