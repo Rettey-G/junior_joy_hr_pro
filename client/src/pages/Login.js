@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Box, 
   Typography, 
   TextField, 
   Button, 
-  Paper,
   Alert,
   CircularProgress,
   useTheme,
@@ -18,7 +16,6 @@ import {
 import api from '../services/api';
 
 const Login = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: ''

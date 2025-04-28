@@ -10,7 +10,6 @@ import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
-import UserManagement from './pages/UserManagement';
 import PayrollDetails from './pages/PayrollDetails';
 import LeavePlan from './pages/LeavePlan';
 import UserPanel from './pages/UserPanel';
