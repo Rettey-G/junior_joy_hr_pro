@@ -9,8 +9,8 @@
     "init-db": "node scripts/init-db.js"
   },
   "config": {
-    "mongodbUri": "mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0",
-    "jwtSecret": "jjoyhrsecret2024"
+    "mongodbUri": "mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/jjoyHR?retryWrites=true&w=majority&appName=Cluster0",
+    "jwtSecret": "yourjwtsecretkey"
   },
   "keywords": [],
   "author": "",
