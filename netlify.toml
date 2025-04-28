@@ -4,10 +4,15 @@
   publish = "build"
 
 [build.environment]
-  REACT_APP_API_URL = "https://your-backend-url.herokuapp.com"
+  REACT_APP_API_URL = "https://junior-joy-hr-pro.onrender.com"
   CI = "false"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"

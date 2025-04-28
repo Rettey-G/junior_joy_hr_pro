@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// Get the API URL from environment or use a default
+// Get the API URL from environment or use Render URL as default
 const API_URL = process.env.REACT_APP_API_URL || 
   (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://junior-joy-hr-pro.onrender.com');
+
+console.log('Using API URL:', API_URL); // Debug log
 
 const api = axios.create({
   baseURL: API_URL,
@@ -20,9 +22,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     // Log the request in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('API Request:', config.url);
-    }
+    console.log('API Request to:', config.url);
     return config;
   },
   (error) => {
@@ -35,9 +35,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // Log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error);
-    }
+    console.error('API Error:', error.response || error);
     if (error.response?.status === 401) {
       // Clear token and redirect to login if unauthorized
       localStorage.removeItem('token');

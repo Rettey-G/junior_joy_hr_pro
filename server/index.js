@@ -11,10 +11,31 @@ const server = http.createServer(app);
 
 // CORS configuration for production and development
 const allowedOrigins = [
-  'https://juniorjoy-hr-pro.netlify.app',
+  'https://junior-joy-hr-pro.netlify.app',
   'http://localhost:3000',
-  process.env.FRONTEND_URL // Add your production frontend URL here
-];
+  'http://localhost:3001',
+  'https://juniorjoy-hr-pro.netlify.app'
+].filter(Boolean);
+
+console.log('Allowed Origins:', allowedOrigins);
+
+// CORS configuration
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Origin blocked:', origin);
+      return callback(null, false);
+    }
+    console.log('Origin allowed:', origin);
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Socket.io configuration
 const io = new Server(server, {
@@ -26,21 +47,16 @@ const io = new Server(server, {
   },
 });
 
-// Middleware
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
 app.use(express.json());
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // MongoDB Connection
 console.log('Connecting to MongoDB Atlas...');
-
-// Get MongoDB URI from package.json config or environment variable
-const pkg = require('./package.json');
-const MONGODB_URI = process.env.MONGODB_URI || pkg.config.mongodbUri;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Rettey:Adhu1447@cluster0.spr2o17.mongodb.net/test';
 
 // Connect to MongoDB Atlas with retry logic
 const connectWithRetry = () => {
@@ -52,7 +68,6 @@ const connectWithRetry = () => {
   })
   .then(() => {
     console.log('Successfully connected to MongoDB Atlas');
-    console.log('Ready to serve employee data with salary and cityIsland fields');
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
@@ -118,8 +133,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Kill any existing process on port 5000 before starting (Windows only)
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
