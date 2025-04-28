@@ -17,7 +17,25 @@ const EmployeeSchema = new mongoose.Schema({
   salaryUSD: { type: Number },  // Added USD salary
   salaryMVR: { type: Number },  // Added MVR salary
   image: { type: String },      // Added image field
-  active: { type: Boolean, default: true }
+  email: { type: String },
+  address: { type: String },
+  employeeType: { type: String, default: 'Full-time' },
+  active: { type: Boolean, default: true },
+  accountDetails: {
+    bankName: { type: String },
+    accountNumber: { type: String },
+    IBAN: { type: String }
+  },
+  documents: [{
+    name: { type: String },
+    file: { type: String },
+    uploadDate: { type: Date }
+  }],
+  emergencyContact: {
+    name: { type: String },
+    relationship: { type: String },
+    phoneNumber: { type: String }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);

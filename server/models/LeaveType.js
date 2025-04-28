@@ -33,7 +33,4 @@ const LeaveTypeSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Add index for faster queries
-LeaveTypeSchema.index({ name: 1 });
-
 module.exports = mongoose.model('LeaveType', LeaveTypeSchema); 

@@ -165,10 +165,7 @@ const Dashboard = () => {
     const fetchEmployeeData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${apiUrl}/api/employees`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/api/employees');
         
         const employees = response.data;
         
@@ -185,86 +182,6 @@ const Dashboard = () => {
       } catch (err) {
         console.error('Error fetching employee data:', err);
         setError('Failed to fetch employee data. Using demo data instead.');
-        
-        // Use demo data if API fails
-        // Create demo data based on our DB schema
-        const demoEmployees = [
-          { 
-            empNo: 'EMP001', 
-            name: 'John Doe', 
-            idNumber: 'A1234567',
-            gender: 'Male',
-            nationality: 'American',
-            department: 'Engineering',
-            designation: 'Senior Developer',
-            workSite: 'Headquarters',
-            joinedDate: '2020-01-15',
-            salaryUSD: 95000,
-            salaryMVR: 1463000,
-            active: true
-          },
-          { 
-            empNo: 'EMP002', 
-            name: 'Alice Smith', 
-            idNumber: 'B2345678',
-            gender: 'Female',
-            nationality: 'Canadian',
-            department: 'Marketing',
-            designation: 'Marketing Manager',
-            workSite: 'Branch Office',
-            joinedDate: '2019-03-10',
-            salaryUSD: 85000,
-            salaryMVR: 1308900,
-            active: true
-          },
-          { 
-            empNo: 'EMP003', 
-            name: 'Michael Johnson', 
-            idNumber: 'C3456789',
-            gender: 'Male',
-            nationality: 'British',
-            department: 'Finance',
-            designation: 'Financial Analyst',
-            workSite: 'Headquarters',
-            joinedDate: '2021-06-05',
-            salaryUSD: 80000,
-            salaryMVR: 1232000,
-            active: true
-          },
-          { 
-            empNo: 'EMP004', 
-            name: 'Emily Wang', 
-            idNumber: 'D4567890',
-            gender: 'Female',
-            nationality: 'Chinese',
-            department: 'HR',
-            designation: 'HR Manager',
-            workSite: 'Headquarters',
-            joinedDate: '2018-08-20',
-            salaryUSD: 78000,
-            salaryMVR: 1201200,
-            active: true
-          },
-          { 
-            empNo: 'EMP005', 
-            name: 'Ahmed Sinaz', 
-            idNumber: 'A132309',
-            gender: 'Male',
-            nationality: 'Maldivian',
-            department: 'Admin',
-            designation: 'Managing Director',
-            workSite: 'Office',
-            joinedDate: '2011-03-21',
-            salaryUSD: 120000,
-            salaryMVR: 1848000,
-            active: true
-          }
-        ];
-        
-        // Use the demo data for calculations
-        calculateStats(demoEmployees);
-        generateDistributionData(demoEmployees);
-        generateTurnoverData(demoEmployees);
         setLoading(false);
       }
     };
@@ -282,7 +199,7 @@ const Dashboard = () => {
     return () => {
       socket.off('hrNotification');
     };
-  }, [apiUrl]);
+  }, []);
   
   // Calculate statistics from employee data
   const calculateStats = (employees) => {

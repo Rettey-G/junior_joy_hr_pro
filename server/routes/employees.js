@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');
+const auth = require('../middleware/auth');
+const hr = require('../middleware/hr');
 
 // GET all employees with filtering
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     // Extract filter parameters from query
     const { department, workSite, active } = req.query;
@@ -17,12 +19,13 @@ router.get('/', async (req, res) => {
     const employees = await Employee.find(query).sort({ empNo: 1 });
     res.json(employees);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching employees:', err);
+    res.status(500).json({ error: 'Failed to fetch employees' });
   }
 });
 
 // GET employee by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Employee not found' });
@@ -33,7 +36,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create employee
-router.post('/', async (req, res) => {
+router.post('/', [auth, hr], async (req, res) => {
   try {
     // Format dates if they come as strings
     if (req.body.dateOfBirth) {
@@ -52,7 +55,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update employee
-router.put('/:id', async (req, res) => {
+router.put('/:id', [auth, hr], async (req, res) => {
   try {
     // Format dates if they come as strings
     if (req.body.dateOfBirth) {
@@ -71,7 +74,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE employee
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', [auth, hr], async (req, res) => {
   try {
     const employee = await Employee.findByIdAndDelete(req.params.id);
     if (!employee) return res.status(404).json({ error: 'Employee not found' });
@@ -82,7 +85,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Bulk import employees
-router.post('/bulk', async (req, res) => {
+router.post('/bulk', [auth, hr], async (req, res) => {
   try {
     const { employees } = req.body;
     if (!employees || !Array.isArray(employees) || employees.length === 0) {

@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import axios from 'axios';
+import api from '../services/api';
 
 const UserPanel = () => {
   const [users, setUsers] = useState([]);
@@ -58,10 +58,7 @@ const UserPanel = () => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/users', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/users');
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -75,10 +72,7 @@ const UserPanel = () => {
     e.preventDefault();
     try {
       setError(null);
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5000/api/users', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post('/api/users', formData);
       setUsers([...users, response.data]);
       setOpenDialog(false);
       setFormData({
@@ -96,10 +90,7 @@ const UserPanel = () => {
   const handleEdit = async () => {
     try {
       setError(null);
-      const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/users/${selectedUser._id}`, editFormData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/api/users/${selectedUser._id}`, editFormData);
       setOpenEditDialog(false);
       fetchUsers();
     } catch (error) {
@@ -111,10 +102,7 @@ const UserPanel = () => {
   const handleDelete = async (userId) => {
     try {
       setError(null);
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/users/${userId}`);
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);

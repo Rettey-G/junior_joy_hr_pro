@@ -11,7 +11,11 @@ import {
   useMediaQuery,
   Tab,
   Tabs,
-  Alert
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import { 
   PeopleOutline, 
@@ -23,7 +27,7 @@ import {
 } from '@mui/icons-material';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, LineElement, PointElement } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
-import axios from 'axios';
+import api from '../services/api';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, LineElement, PointElement);
@@ -47,11 +51,7 @@ const AnalyticsDashboard = () => {
         
         // Try to fetch from API first
         try {
-          const token = localStorage.getItem('token');
-          const response = await axios.get(`${apiUrl}/api/analytics/latest`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
+          const response = await api.get('/api/analytics/latest');
           setAnalyticsData(response.data);
           setLoading(false);
         } catch (apiError) {
@@ -67,7 +67,7 @@ const AnalyticsDashboard = () => {
     };
     
     fetchAnalyticsData();
-  }, [apiUrl]);
+  }, []);
   
   // Define a variable to store employee data that can be used elsewhere in the component
   let employeeData = [];
@@ -78,7 +78,7 @@ const AnalyticsDashboard = () => {
       // Try to fetch employee data from API first
       try {
         const token = localStorage.getItem('token');
-        const employeeResponse = await axios.get(`${apiUrl}/api/employees`, {
+        const employeeResponse = await api.get('/api/employees', {
           headers: { Authorization: `Bearer ${token}` }
         });
         employeeData = employeeResponse.data;
