@@ -8,30 +8,53 @@ const auth = async (req, res, next) => {
         const token = req.header('Authorization')?.replace('Bearer ', '');
         
         if (!token) {
-            return res.status(401).json({ message: 'No authentication token provided' });
+            return res.status(401).json({ 
+                message: 'Authentication failed',
+                error: 'No token provided'
+            });
         }
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || config.jwtSecret || 'yourjwtsecretkey');
-        
-        // Find user
-        const user = await User.findById(decoded.userId);
-        
-        if (!user) {
-            return res.status(401).json({ message: 'User not found' });
-        }
+        try {
+            // Verify token
+            const decoded = jwt.verify(
+                token, 
+                process.env.JWT_SECRET || config.config.jwtSecret || 'yourjwtsecretkey'
+            );
+            
+            // Find user
+            const user = await User.findById(decoded.userId);
+            
+            if (!user) {
+                return res.status(401).json({ 
+                    message: 'Authentication failed',
+                    error: 'User not found'
+                });
+            }
 
-        if (!user.active) {
-            return res.status(401).json({ message: 'Account is deactivated' });
-        }
+            if (!user.active) {
+                return res.status(401).json({ 
+                    message: 'Authentication failed',
+                    error: 'Account is deactivated'
+                });
+            }
 
-        // Add user to request
-        req.user = user;
-        req.token = token;
-        
-        next();
+            // Add user to request
+            req.user = user;
+            req.token = token;
+            
+            next();
+        } catch (err) {
+            return res.status(401).json({ 
+                message: 'Authentication failed',
+                error: 'Invalid or expired token'
+            });
+        }
     } catch (error) {
-        res.status(401).json({ message: 'Invalid or expired token' });
+        console.error('Auth middleware error:', error);
+        res.status(500).json({ 
+            message: 'Server error',
+            error: 'Internal server error during authentication'
+        });
     }
 };
 
