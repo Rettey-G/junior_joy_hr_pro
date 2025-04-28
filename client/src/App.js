@@ -108,13 +108,11 @@ function App() {
   // Simple auth check (replace with real auth logic later)
   const isAuthenticated = () => {
     const token = localStorage.getItem('token');
-    console.log('Auth check - Token:', token);
     return token !== null;
   };
 
   const isAdmin = () => {
     const role = localStorage.getItem('userRole');
-    console.log('Role check:', role);
     return role === 'admin';
   };
 

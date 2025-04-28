@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// Get the API URL from environment or use Render URL as default
-const API_URL = process.env.REACT_APP_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://junior-joy-hr-pro.onrender.com');
+// Get the API URL from environment or use localhost as default
+const API_URL = 'http://localhost:5000';
 
 console.log('Using API URL:', API_URL); // Debug log
 
