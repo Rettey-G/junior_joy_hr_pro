@@ -183,7 +183,5 @@ router.post('/generate', auth, async (req, res) => {
   }
 });
 
-module.exports = {
-  router,
-  generateAnalytics
-};
+router.generateAnalytics = generateAnalytics;
+module.exports = router;

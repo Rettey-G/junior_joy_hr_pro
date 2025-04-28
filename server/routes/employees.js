@@ -3,7 +3,8 @@ const router = express.Router();
 const Employee = require('../models/Employee');
 const auth = require('../middleware/auth');
 const hr = require('../middleware/hr');
-const { generateAnalytics } = require('./analytics');
+const analyticsRouter = require('./analytics');
+const generateAnalytics = analyticsRouter.generateAnalytics;
 
 // GET all employees with filtering
 router.get('/', auth, async (req, res) => {
