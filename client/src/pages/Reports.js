@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, Grid, Button, Card, CardContent, 
   CircularProgress, Alert, Tab, Tabs, Select, MenuItem,
-  FormControl, InputLabel
+  FormControl, InputLabel, Snackbar
 } from '@mui/material';
-import { PictureAsPdf, CloudDownload, BarChart, PieChart, ShowChart } from '@mui/icons-material';
+import { PictureAsPdf, CloudDownload, BarChart, PieChart, ShowChart, Refresh } from '@mui/icons-material';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +19,8 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import api from '../services/api';
 
 // Register ChartJS components
@@ -56,6 +58,8 @@ const Reports = () => {
   const [error, setError] = useState('');
   const [reportType, setReportType] = useState('department');
   const [timeframe, setTimeframe] = useState('month');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Fetch employees data
   const fetchEmployees = async () => {
@@ -67,8 +71,19 @@ const Reports = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEmployees(response.data);
+      setLastUpdated(new Date());
+      setSnackbar({
+        open: true,
+        message: 'Data refreshed successfully',
+        severity: 'success'
+      });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch data');
+      setSnackbar({
+        open: true,
+        message: 'Failed to fetch data. Please try again.',
+        severity: 'error'
+      });
       console.error('Error fetching employees:', err);
     } finally {
       setLoading(false);
@@ -80,9 +95,49 @@ const Reports = () => {
     fetchEmployees();
   }, []);
 
+  // Auto-refresh data every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(fetchEmployees, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Handle tab change
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+  };
+
+  // Export data to Excel
+  const exportToExcel = () => {
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(employees);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Employee Data');
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(data, `employee_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      setSnackbar({
+        open: true,
+        message: 'Report exported successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to export report',
+        severity: 'error'
+      });
+      console.error('Error exporting to Excel:', err);
+    }
+  };
+
+  // Export data to PDF
+  const exportToPDF = () => {
+    // Implement PDF export functionality
+    setSnackbar({
+      open: true,
+      message: 'PDF export coming soon',
+      severity: 'info'
+    });
   };
 
   // Generate random data for sample reports
@@ -456,13 +511,23 @@ const Reports = () => {
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
               <Button
                 variant="outlined"
+                startIcon={<Refresh />}
+                onClick={fetchEmployees}
+                disabled={loading}
+              >
+                Refresh Data
+              </Button>
+              <Button
+                variant="outlined"
                 startIcon={<PictureAsPdf />}
+                onClick={exportToPDF}
               >
                 Export as PDF
               </Button>
               <Button
                 variant="outlined"
                 startIcon={<CloudDownload />}
+                onClick={exportToExcel}
               >
                 Export as Excel
               </Button>
@@ -470,6 +535,13 @@ const Reports = () => {
           </Grid>
         </Grid>
       </Paper>
+      
+      {/* Last Updated Info */}
+      {lastUpdated && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Last updated: {format(lastUpdated, 'yyyy-MM-dd HH:mm:ss')}
+        </Typography>
+      )}
       
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -548,6 +620,21 @@ const Reports = () => {
           Data Source: Junior Joy HR Pro
         </Typography>
       </Box>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
